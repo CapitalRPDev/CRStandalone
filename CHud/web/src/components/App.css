@@ -1,0 +1,495 @@
+.nui-wrapper {
+  text-align: center;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+pre {
+  counter-reset:line-numbering;
+  background:#2c3e50;
+  padding:12px 0px 14px 0;
+  color:#ecf0f1;
+  line-height:140%;
+}
+
+.popup-thing {
+  background: #282c34;
+  border-radius: 10px;
+  width: 500px;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+
+
+.hud-container {
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.stats-wrapper {
+  position: fixed;
+  bottom: 20px;
+  left: 360px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  pointer-events: none;
+}
+
+.stat {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--color);
+}
+
+.stat i {
+  font-size: 16px;
+  z-index: 2;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--color) calc(var(--progress) * 360deg),
+    rgba(255,255,255,0.15) 0
+  );
+  -webkit-mask: radial-gradient(circle 21px at center, transparent 98%, black 100%);
+  mask: radial-gradient(circle 21px at center, transparent 98%, black 100%);
+}
+
+.stat::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    transparent 0deg 50deg,
+    rgba(0,0,0,0.55) 50deg 60deg
+  );
+  -webkit-mask: radial-gradient(circle 21px at center, transparent 98%, black 100%);
+  mask: radial-gradient(circle 21px at center, transparent 98%, black 100%);
+}
+
+.mic-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(24, 24, 24, 0.8);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #00aeff;
+}
+
+.mic-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.mic-icon.active {
+  color: #00aeff;
+}
+
+.mic-icon i {
+  font-size: 16px;
+}
+
+.mic-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 20px;
+}
+
+.mic-bar {
+  width: 4px;
+  background-color: #333;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.mic-bar:nth-child(1) { height: 40%; }
+.mic-bar:nth-child(2) { height: 60%; }
+.mic-bar:nth-child(3) { height: 80%; }
+.mic-bar:nth-child(4) { height: 100%; }
+.mic-bar:nth-child(5) { height: 80%; }
+.mic-bar:nth-child(6) { height: 60%; }
+.mic-bar:nth-child(7) { height: 40%; }
+
+.mic-bar.filled {
+  background-color: #00aeff;
+}
+
+.streetnames-container {
+  position: fixed;
+  bottom: 290px; 
+  left: 50px;
+  transform: none; 
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: rgba(24, 24, 24, 0.8);
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #00aeff;
+  min-width: 300px;
+  width: 300px;
+  box-sizing: border-box;
+}
+
+.direction-badge {
+  background-color: #00aeff;
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.location-name {
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.street-name {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+.minimap-container {
+  position: fixed;
+  bottom: 24px;
+  left: 55px;
+  width: 280px;
+  height: 250px;
+  pointer-events: none;
+}
+
+.minimap-placeholder {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(0, 167, 220, 0.1) 0%, rgba(24, 24, 24, 0.3) 100%);
+  border-radius: 8px;
+  border: 2px solid rgba(0, 167, 220, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minimap-placeholder span {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+
+.speedometer-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  min-width: 280px;
+}
+.speedometer-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.speedometer-gear {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 14px;
+}
+
+.speedometer-speed {
+  color: #fff;
+  font-size: 52px;
+  font-weight: bold;
+  line-height: 1;
+  letter-spacing: -1px;
+  min-width: 80px;
+}
+
+.speedometer-icons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.speedometer-icons i {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.speedometer-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+}
+
+.speedometer-bar {
+  width: 8px;
+  height: 14px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  transition: background-color 0.1s ease;
+}
+
+.speedometer-bar.filled {
+  background-color: #00aeff;
+  box-shadow: 0 0 4px rgba(0, 167, 220, 0.6);
+}
+
+
+.speedometer-bar.redline {
+  background-color: #ff1744;
+  box-shadow: 0 0 6px rgba(255, 23, 68, 0.8);
+}
+
+.speedometer-unit {
+  color: #00aeff;
+  font-weight: 300;
+}
+
+
+
+.notify-wrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999;
+}
+
+.notify-container {
+  width: auto;
+  min-width: 280px;
+  height: auto;
+  background-color: rgba(24, 24, 24, 0.8);
+  padding: 14px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #00aeff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.notify-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notify-icon i {
+  font-size: 16px;
+  color: #fff;
+}
+
+.notify-text {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+
+.progressbar-container {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(24, 24, 24, 0.85);
+  border-radius: 8px;
+  padding: 10px 20px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progressbar-container::before,
+.progressbar-container::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: #00aeff;
+  border-style: solid;
+}
+
+.progressbar-container::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+  border-radius: 8px 0 0 0;
+}
+
+.progressbar-container::after {
+  top: -1px;
+  right: -1px;
+  border-width: 2px 2px 0 0;
+  border-radius: 0 8px 0 0;
+}
+.progressbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progressbar-label {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.progressbar-percent {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.progressbar-arrows {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.progressbar-arrow {
+  font-size: 22px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.15);
+  transition: color 0.1s ease;
+}
+
+.progressbar-arrow.filled {
+  color: #2ecc71;
+  text-shadow: 0 0 6px rgba(46, 204, 113, 0.8);
+}
+
+
+.progressbar-label-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressbar-label-wrapper i {
+  font-size: 14px;
+}
+
+
+.corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: #00aeff;
+  border-style: solid;
+}
+
+.corner.bottom-left {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 2px 2px;
+  border-radius: 0 0 0 8px;
+}
+
+.corner.bottom-right {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 8px 0;
+}
+
+
+.seatbelt-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.seatbelt-on {
+  color: #2ecc71;
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+}
+
+.seatbelt-off {
+  color: #ff1744;
+  background: rgba(255, 23, 68, 0.15);
+  border: 1px solid rgba(255, 23, 68, 0.4);
+  box-shadow: 0 0 8px rgba(255, 23, 68, 0.5);
+  animation: seatbelt-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes seatbelt-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 23, 68, 0.5); }
+  50% { box-shadow: 0 0 16px rgba(255, 23, 68, 0.9); }
+}
