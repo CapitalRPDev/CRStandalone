@@ -132,7 +132,15 @@ exports('createZone', function(coords, size, options)
                 options.onEnter()
             end
             if options.prompts then
-                showInteraction(options.prompts)
+                local filtered = {}
+                for _, prompt in ipairs(options.prompts) do
+                    if not prompt.canInteract or prompt.canInteract() then
+                        filtered[#filtered + 1] = prompt
+                    end
+                end
+                if #filtered > 0 then
+                    showInteraction(filtered)
+                end
             end
         end,
         onExit = function()
