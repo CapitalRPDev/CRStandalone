@@ -2,6 +2,7 @@ local activeInteraction = false
 local selectedIndex = 1
 local currentOptions = {}
 local hideOnSelect = true
+local createdZones = {}
 
 local function showInteraction(options, shouldHide)
     activeInteraction = true
@@ -11,7 +12,7 @@ local function showInteraction(options, shouldHide)
 
     local sendOptions = {}
     for _, opt in ipairs(options) do
-        sendOptions[#sendOptions+1] = {
+        sendOptions[#sendOptions + 1] = {
             label = opt.label,
             sublabel = opt.sublabel,
             icon = opt.icon
@@ -27,18 +28,27 @@ end
 local function hideInteraction()
     activeInteraction = false
     currentOptions = {}
-    print("^2[CInteraction]^7 Hiding interaction")
     SendReactMessage('hide3DInteraction', {})
 end
 
 RegisterCommand("testinteraction", function()
     showInteraction({
-        { label = "Rob ATM", sublabel = "Steal the cash", icon = "fa-money-bill", action = function()
-            print("Robbing ATM!")
-        end},
-        { label = "Check Balance", sublabel = "View your funds", icon = "fa-eye", action = function()
-            print("Checking balance!")
-        end},
+        {
+            label = "Rob ATM",
+            sublabel = "Steal the cash",
+            icon = "fa-money-bill",
+            action = function()
+                print("Robbing ATM!")
+            end
+        },
+        {
+            label = "Check Balance",
+            sublabel = "View your funds",
+            icon = "fa-eye",
+            action = function()
+                print("Checking balance!")
+            end
+        },
     })
 end, false)
 
@@ -49,13 +59,20 @@ end)
 
 local function scrollInteraction(direction)
     if not activeInteraction then return end
+
     selectedIndex = selectedIndex + direction
-    if selectedIndex < 1 then selectedIndex = #currentOptions end
-    if selectedIndex > #currentOptions then selectedIndex = 1 end
+
+    if selectedIndex < 1 then
+        selectedIndex = #currentOptions
+    end
+
+    if selectedIndex > #currentOptions then
+        selectedIndex = 1
+    end
 
     local sendOptions = {}
     for _, opt in ipairs(currentOptions) do
-        sendOptions[#sendOptions+1] = {
+        sendOptions[#sendOptions + 1] = {
             label = opt.label,
             sublabel = opt.sublabel,
             icon = opt.icon
@@ -74,16 +91,25 @@ local zone = lib.zones.box({
     rotation = 0.0,
     debug = true,
     onEnter = function()
-        print("entered")
         showInteraction({
-            { label = "Rob ATM", sublabel = "Steal the cash", icon = "fa-money-bill", action = function()
-                hideInteraction()
-                print("Robbing ATM!")
-            end},
-            { label = "Check Balance", sublabel = "View your funds", icon = "fa-eye", action = function()
-                hideInteraction()
-                print("Checking balance!")
-            end},
+            {
+                label = "Rob ATM",
+                sublabel = "Steal the cash",
+                icon = "fa-money-bill",
+                action = function()
+                    hideInteraction()
+                    print("Robbing ATM!")
+                end
+            },
+            {
+                label = "Check Balance",
+                sublabel = "View your funds",
+                icon = "fa-eye",
+                action = function()
+                    hideInteraction()
+                    print("Checking balance!")
+                end
+            },
         })
     end,
     onExit = function()
@@ -94,6 +120,7 @@ local zone = lib.zones.box({
 CreateThread(function()
     while true do
         Wait(0)
+
         if activeInteraction then
             DisableControlAction(0, 14, true)
             DisableControlAction(0, 15, true)
@@ -105,12 +132,14 @@ CreateThread(function()
                 scrollInteraction(1)
             elseif IsDisabledControlJustPressed(0, 38) then
                 local selected = currentOptions[selectedIndex]
+
                 if hideOnSelect then
                     activeInteraction = false
                     currentOptions = {}
-                    SendReactMessage('hide3DInteraction', false)
+                    SendReactMessage('hide3DInteraction', {})
                     Wait(100)
                 end
+
                 if selected and selected.action then
                     selected.action()
                 end
@@ -124,8 +153,21 @@ end)
 exports('showInteraction', showInteraction)
 exports('hideInteraction', hideInteraction)
 
+exports('removeZone', function(id)
+    local zoneRef = createdZones[id]
+    if not zoneRef then return end
+
+    zoneRef:remove()
+    createdZones[id] = nil
+end)
+
 exports('createZone', function(coords, size, options)
-    local zone = lib.zones.box({
+    if options.id and createdZones[options.id] then
+        createdZones[options.id]:remove()
+        createdZones[options.id] = nil
+    end
+
+    local zoneRef = lib.zones.box({
         coords = coords,
         size = size,
         rotation = 0.0,
@@ -134,30 +176,46 @@ exports('createZone', function(coords, size, options)
             if options.onEnter then
                 options.onEnter()
             end
+
             if options.prompts then
                 local filtered = {}
+
                 for _, prompt in ipairs(options.prompts) do
                     if not prompt.canInteract or prompt.canInteract() then
                         filtered[#filtered + 1] = prompt
                     end
                 end
+
                 if #filtered > 0 then
                     showInteraction(filtered, options.hideOnSelect)
+                else
+                    hideInteraction()
                 end
             end
         end,
         onExit = function()
             hideInteraction()
+
             if options.onExit then
                 options.onExit()
             end
         end
     })
-    return zone
+
+    if options.id then
+        createdZones[options.id] = zoneRef
+    end
+
+    return zoneRef
 end)
 
 exports('createSphereZone', function(coords, radius, options)
-    local zone = lib.zones.sphere({
+    if options.id and createdZones[options.id] then
+        createdZones[options.id]:remove()
+        createdZones[options.id] = nil
+    end
+
+    local zoneRef = lib.zones.sphere({
         coords = coords,
         radius = radius,
         debug = Config.Debug,
@@ -165,24 +223,37 @@ exports('createSphereZone', function(coords, radius, options)
             if options.onEnter then
                 options.onEnter()
             end
+
             if options.prompts then
                 local filtered = {}
+
                 for _, prompt in ipairs(options.prompts) do
                     if not prompt.canInteract or prompt.canInteract() then
                         filtered[#filtered + 1] = prompt
                     end
                 end
+
                 if #filtered > 0 then
                     showInteraction(filtered, options.hideOnSelect)
+                else
+                    hideInteraction()
                 end
             end
         end,
         onExit = function()
             hideInteraction()
+
             if options.onExit then
                 options.onExit()
             end
         end
     })
-    return zone
+
+    if options.id then
+        createdZones[options.id] = zoneRef
+    end
+
+    return zoneRef
 end)
+
+
