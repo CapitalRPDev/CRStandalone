@@ -1,11 +1,13 @@
 local activeInteraction = false
 local selectedIndex = 1
 local currentOptions = {}
+local hideOnSelect = true
 
-local function showInteraction(options)
+local function showInteraction(options, shouldHide)
     activeInteraction = true
     selectedIndex = 1
     currentOptions = options
+    hideOnSelect = shouldHide ~= false
 
     local sendOptions = {}
     for _, opt in ipairs(options) do
@@ -20,7 +22,6 @@ local function showInteraction(options)
         selectedIndex = selectedIndex
     })
 end
-
 
 local function hideInteraction()
     activeInteraction = false
@@ -102,10 +103,12 @@ CreateThread(function()
                 scrollInteraction(1)
             elseif IsDisabledControlJustPressed(0, 38) then
                 local selected = currentOptions[selectedIndex]
-                activeInteraction = false
-                currentOptions = {}
-                SendReactMessage('hide3DInteraction', false)
-                Wait(100)
+                if hideOnSelect then
+                    activeInteraction = false
+                    currentOptions = {}
+                    SendReactMessage('hide3DInteraction', false)
+                    Wait(100)
+                end
                 if selected and selected.action then
                     selected.action()
                 end
@@ -116,11 +119,9 @@ CreateThread(function()
     end
 end)
 
-
-
-
 exports('showInteraction', showInteraction)
 exports('hideInteraction', hideInteraction)
+
 exports('createZone', function(coords, size, options)
     local zone = lib.zones.box({
         coords = coords,
@@ -139,7 +140,7 @@ exports('createZone', function(coords, size, options)
                     end
                 end
                 if #filtered > 0 then
-                    showInteraction(filtered)
+                    showInteraction(filtered, options.hideOnSelect)
                 end
             end
         end,
@@ -163,7 +164,15 @@ exports('createSphereZone', function(coords, radius, options)
                 options.onEnter()
             end
             if options.prompts then
-                showInteraction(options.prompts)
+                local filtered = {}
+                for _, prompt in ipairs(options.prompts) do
+                    if not prompt.canInteract or prompt.canInteract() then
+                        filtered[#filtered + 1] = prompt
+                    end
+                end
+                if #filtered > 0 then
+                    showInteraction(filtered, options.hideOnSelect)
+                end
             end
         end,
         onExit = function()
@@ -175,30 +184,3 @@ exports('createSphereZone', function(coords, radius, options)
     })
     return zone
 end)
-
-
--- Example USage
-
-
---[[ CreateThread(function()
-    exports['CInteraction']:createZone(
-        vector3(200.4, -934.1, 29.4),
-        vector3(5.0, 5.0, 5.0),
-        {
-            prompts = {
-                { label = "Rob ATM", icon = "fa-money-bill", action = function()
-                    print("Robbing ATM!")
-                end},
-                { label = "Check Balance", icon = "fa-eye", action = function()
-                    print("Checking balance!")
-                end},
-            },
-            onEnter = function()
-                print("Entered ATM zone")
-            end,
-            onExit = function()
-                print("Left ATM zone")
-            end
-        }
-    )
-end) ]]
