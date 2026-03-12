@@ -13,6 +13,7 @@ local function showInteraction(options, shouldHide)
     for _, opt in ipairs(options) do
         sendOptions[#sendOptions+1] = {
             label = opt.label,
+            sublabel = opt.sublabel,
             icon = opt.icon
         }
     end
@@ -32,10 +33,10 @@ end
 
 RegisterCommand("testinteraction", function()
     showInteraction({
-        { label = "Rob ATM", icon = "fa-money-bill", action = function()
+        { label = "Rob ATM", sublabel = "Steal the cash", icon = "fa-money-bill", action = function()
             print("Robbing ATM!")
         end},
-        { label = "Check Balance", icon = "fa-eye", action = function()
+        { label = "Check Balance", sublabel = "View your funds", icon = "fa-eye", action = function()
             print("Checking balance!")
         end},
     })
@@ -56,6 +57,7 @@ local function scrollInteraction(direction)
     for _, opt in ipairs(currentOptions) do
         sendOptions[#sendOptions+1] = {
             label = opt.label,
+            sublabel = opt.sublabel,
             icon = opt.icon
         }
     end
@@ -74,11 +76,11 @@ local zone = lib.zones.box({
     onEnter = function()
         print("entered")
         showInteraction({
-            { label = "Rob ATM", icon = "fa-money-bill", action = function()
+            { label = "Rob ATM", sublabel = "Steal the cash", icon = "fa-money-bill", action = function()
                 hideInteraction()
                 print("Robbing ATM!")
             end},
-            { label = "Check Balance", icon = "fa-eye", action = function()
+            { label = "Check Balance", sublabel = "View your funds", icon = "fa-eye", action = function()
                 hideInteraction()
                 print("Checking balance!")
             end},
