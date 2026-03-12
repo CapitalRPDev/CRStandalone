@@ -1,0 +1,53 @@
+{
+    "backgroundImage": "images/bg2.png",
+    "useLogo": true,
+    "logoImage": "images/mainLogo.png",
+    "logoSize": 300,
+    "title": "Capital RP",
+    "titleTextGradient": "linear-gradient(135deg, #ffffff 30%, #00aeff 100%)",
+    "subtitle": "",
+    "loadingText": "Connecting to Capital RP",
+    "footerText": "© 2026 Capital RP. All rights reserved.",
+    "colorTheme": {
+        "primary": "#00aeff",
+        "secondary": "#0077cc",
+        "text": "#ffffff",
+        "background": "#0a0b10"
+    },
+    "particles": {
+        "enabled": true,
+        "count": 60,
+        "connectParticles": true,
+        "connectDistance": 120
+    },
+    "music": {
+        "enabled": true,
+        "autoplay": true,
+        "showControls": false,
+        "initialVolume": 0.5,
+        "songs": [
+            {
+                "title": "Running Away",
+                "artist": "Taska Black",
+                "file": "music/runningAway.mp3"
+            },
+            {
+                "title": "Royalty",
+                "artist": "Ezgod",
+                "file": "music/ncs1.mp3"
+            },
+            {
+                "title": "Sports Car",
+                "artist": "Tate",
+                "file": "music/tate.mp3"
+            },
+            {
+                "title": "It Feels Good",
+                "artist": "Matt Sassari",
+                "file": "music/feelsgood.mp3"
+            }
+        ]
+    },
+    "socialIcons": [
+    ]
+}

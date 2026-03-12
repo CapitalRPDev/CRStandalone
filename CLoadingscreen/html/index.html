@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Screen</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <canvas id="particles-canvas"></canvas>
+        <div class="background-overlay"></div>
+        <div class="vignette"></div>
+        <div class="glow-line-top"></div>
+        <div class="glow-line-bottom"></div>
+
+        <div class="content">
+            <div class="header">
+                <div id="title-container"></div>
+                <div id="subtitle-container"></div>
+            </div>
+
+            <div class="loading-indicator">
+                <div class="loading-bar">
+                    <div class="progress"></div>
+                </div>
+                <div class="loading-meta">
+                    <div id="loading-text">Loading...</div>
+                    <div id="loading-percentage">0%</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div id="footer-text"></div>
+            </div>
+
+            
+        </div>
+
+        <div id="music-player-container"></div>
+    </div>
+
+    <script src="particles.js"></script>
+    <script src="music-player.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
