@@ -45,3 +45,4 @@ export interface ProgressbarData {
   canCancel?: boolean;
   canMove?: boolean;
 }
+

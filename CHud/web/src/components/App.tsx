@@ -12,6 +12,8 @@ import Minimap from "./Minimap";
 import Speedometer from "./Speedometer";
 import Notify from "./Notify";
 import Progressbar from "./Progressbar";
+import SliderMinigame from "./SliderMinigame";
+
 debugData([
   {
     action: "setVisible",
@@ -44,36 +46,34 @@ const App: React.FC = () => {
     streetName: "Grove Street",
   });
 
-
   useNuiEvent<boolean>("setSeatbelt", (value) => {
     setSeatbelt(value);
-});
+  });
 
-useNuiEvent<ProgressbarData>("startProgressbar", (data) => {
-  setProgressbar(data);
-});
+  useNuiEvent<ProgressbarData>("startProgressbar", (data) => {
+    setProgressbar(data);
+  });
 
-useNuiEvent("stopProgressbar", () => {
-  setProgressbar(null);
-});
+  useNuiEvent("stopProgressbar", () => {
+    setProgressbar(null);
+  });
 
-const playSound = (src: string, volume: number = 1.0) => {
-  const audio = new Audio(src);
-  audio.volume = volume;
-  audio.play();
-};
+  const playSound = (src: string, volume: number = 1.0) => {
+    const audio = new Audio(src);
+    audio.volume = volume;
+    audio.play();
+  };
 
+  useNuiEvent<Notification>("notify", (data) => {
+    playSound("notification.ogg", 0.05);
+    const id = String(Date.now());
+    const notification = { ...data, id };
+    setNotifications((prev) => [...prev, notification]);
 
-useNuiEvent<Notification>("notify", (data) => {
-  playSound("notification.ogg", 0.05);
-  const id = String(Date.now());
-  const notification = { ...data, id };
-  setNotifications((prev) => [...prev, notification]);
-
-  setTimeout(() => {
-    setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
-  }, data.duration);
-});
+    setTimeout(() => {
+      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+    }, data.duration);
+  });
 
   useNuiEvent<Partial<PlayerData>>("setPlayerData", (data) => {
     setPlayerData((prev) => ({ ...prev, ...data }));
@@ -91,19 +91,19 @@ useNuiEvent<Notification>("notify", (data) => {
     <div className="nui-wrapper">
       <div className="hud-container">
         <Notify notifications={notifications} />
-      {progressbar && (
-        <Progressbar
-          label={progressbar.label}
-          duration={progressbar.duration}
-          icon={progressbar.icon}
-          color={progressbar.color}
-          onComplete={() => setProgressbar(null)}
-        />
-      )}
+        {progressbar && (
+          <Progressbar
+            label={progressbar.label}
+            duration={progressbar.duration}
+            icon={progressbar.icon}
+            color={progressbar.color}
+            onComplete={() => setProgressbar(null)}
+          />
+        )}
         <Minimap />
         {playerData.isInVehicle && (
-        <Speedometer speed={playerData.speed ?? 0} rpm={playerData.rpm ?? 0} gear={playerData.gear ?? 0} />
-      )}
+          <Speedometer speed={playerData.speed ?? 0} rpm={playerData.rpm ?? 0} gear={playerData.gear ?? 0} />
+        )}
         <Microphone isActive={micData.isActive} volume={micData.volume} />
         <PlayerStats playerData={playerData} hudComponents={hudComponents} seatbelt={seatbelt} />
         <StreetNames
@@ -111,6 +111,7 @@ useNuiEvent<Notification>("notify", (data) => {
           locationName={streetData.locationName}
           streetName={streetData.streetName}
         />
+        <SliderMinigame />
       </div>
     </div>
   );

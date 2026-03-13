@@ -6,6 +6,7 @@ interface SliderConfig {
     speed: number;
     required: number;
     maxFaults: number;
+    time?: number;
 }
 
 interface ZoneConfig {
@@ -28,6 +29,7 @@ const SliderMinigame: React.FC = () => {
     const [faultsDisplay, setFaultsDisplay] = useState(0);
     const [flash, setFlash] = useState<"success" | "fail" | null>(null);
     const [zone, setZone] = useState<ZoneConfig>({ center: 50, width: 24 });
+    const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
     const animRef = useRef<number>();
     const posRef = useRef(0);
@@ -38,6 +40,7 @@ const SliderMinigame: React.FC = () => {
     const faultsRef = useRef(0);
     const configRef = useRef<SliderConfig>({ speed: 2, required: 3, maxFaults: 2 });
     const zoneRef = useRef<ZoneConfig>({ center: 50, width: 24 });
+    const timeRef = useRef<number | null>(null);
 
     useNuiEvent<SliderConfig>("showSliderMinigame", (data) => {
         const initialZone = randomZone();
@@ -55,6 +58,8 @@ const SliderMinigame: React.FC = () => {
         faultsRef.current = 0;
         activeRef.current = true;
         pausedRef.current = false;
+        timeRef.current = data.time ?? null;
+        setTimeLeft(data.time ?? null);
     });
 
     useEffect(() => {
@@ -143,6 +148,28 @@ const SliderMinigame: React.FC = () => {
         return () => window.removeEventListener("keydown", handleKey, true);
     }, [visible]);
 
+    useEffect(() => {
+        if (!visible || timeRef.current === null) return;
+
+        const interval = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev === null) return null;
+                if (prev <= 0.1) {
+                    clearInterval(interval);
+                    if (!activeRef.current) return 0;
+                    activeRef.current = false;
+                    if (animRef.current) cancelAnimationFrame(animRef.current);
+                    setVisible(false);
+                    fetchNui("sliderMinigameResult", { success: false });
+                    return 0;
+                }
+                return parseFloat((prev - 0.1).toFixed(1));
+            });
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [visible]);
+
     if (!visible) return null;
 
     return (
@@ -157,12 +184,22 @@ const SliderMinigame: React.FC = () => {
                             ))}
                         </div>
                         <div className="slider-faults">
-                            {Array.from({ length: config.maxFaults + 1 }).map((_, i) => (
+                            {Array.from({ length: config.maxFaults }).map((_, i) => (
                                 <div key={i} className={`slider-fault ${i < faultsDisplay ? "slider-fault--filled" : ""}`} />
                             ))}
                         </div>
                     </div>
                 </div>
+
+                {timeLeft !== null && (
+                    <div className="slider-timer">
+                        <div
+                            className="slider-timer-bar"
+                            style={{ width: `${(timeLeft / (config.time ?? 1)) * 100}%` }}
+                        />
+                        <span className="slider-timer-label">{timeLeft.toFixed(1)}s</span>
+                    </div>
+                )}
 
                 <div className={`slider-track ${flash === "success" ? "flash-success" : flash === "fail" ? "flash-fail" : ""}`}>
                     <div

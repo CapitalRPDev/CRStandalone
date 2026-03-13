@@ -466,6 +466,7 @@ exports('startSliderMinigame', function(options)
         speed     = options.speed    or 2,
         required  = options.required or 3,
         maxFaults = options.maxFaults or 2,
+        time      = options.time or nil,
     })
 end)
 
@@ -475,6 +476,7 @@ RegisterCommand("testslider", function()
         speed = 3,
         required = 3,
         maxFaults = 2,
+        time = 5,
         onSuccess = function()
             print("success!")
         end,
