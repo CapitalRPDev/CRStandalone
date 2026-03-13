@@ -1,5 +1,6 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local cuffedPlayers = {}
+local draggingPlayers = {}
 
 RegisterNetEvent("CPolice:Server:ToggleDuty", function()
     local src = source
@@ -48,6 +49,12 @@ RegisterNetEvent("CPoliceJob:Server:RequestUncuff", function(targetServerId)
     if not targetServerId then return end
     if src == targetServerId then return end
 
+    if draggingPlayers[src] == targetServerId then
+        TriggerClientEvent("CPoliceJob:Client:Notify", src, "Stop dragging first", 4000)
+        return
+    end
+
+
     local srcPlayer = QBCore.Functions.GetPlayer(src)
     if not srcPlayer then return end
     if srcPlayer.PlayerData.job.name ~= Config.Police.job then return end
@@ -65,7 +72,58 @@ RegisterNetEvent("CPoliceJob:Server:RequestUncuff", function(targetServerId)
     TriggerClientEvent("CPoliceJob:Client:SetCuffed", targetServerId, false, src)
 end)
 
+RegisterNetEvent("CPoliceJob:Server:RequestDrag", function(targetServerId)
+    local src = source
+    targetServerId = tonumber(targetServerId)
+
+    if not targetServerId then return end
+    if src == targetServerId then return end
+
+    local srcPlayer = QBCore.Functions.GetPlayer(src)
+    if not srcPlayer then return end
+    if srcPlayer.PlayerData.job.name ~= Config.Police.job then return end
+    if Config.Police.requireDuty and not srcPlayer.PlayerData.job.onduty then return end
+
+    TriggerClientEvent("CPoliceJob:Client:CheckCuffStatus", targetServerId, src)
+end)
+
+RegisterNetEvent("CPoliceJob:Server:HandleDragRequest", function(isHandcuffed, sourcePlayerId)
+    local targetServerId = source
+
+    if not isHandcuffed then
+        TriggerClientEvent("CPoliceJob:Client:Notify", sourcePlayerId, "This person is not cuffed", 4000)
+        return
+    end
+
+    if draggingPlayers[sourcePlayerId] then
+        TriggerClientEvent("CPoliceJob:Client:Undrag", targetServerId)
+        draggingPlayers[sourcePlayerId] = nil
+    else
+        TriggerClientEvent("CPoliceJob:Client:Drag", targetServerId, sourcePlayerId)
+        draggingPlayers[sourcePlayerId] = targetServerId
+    end
+end)
+
+RegisterNetEvent("CPoliceJob:Server:PutInVehicle", function(targetServerId, vehicleNetId)
+    local src = source
+
+    if draggingPlayers[src] and draggingPlayers[src] == targetServerId then
+        TriggerClientEvent("CPoliceJob:Client:Undrag", targetServerId)
+        draggingPlayers[src] = nil
+    end
+
+    TriggerClientEvent("CPoliceJob:Client:PutInVehicle", targetServerId, vehicleNetId)
+end)
+
+RegisterNetEvent("CPoliceJob:Server:TakeOutOfVehicle", function(targetServerId)
+    TriggerClientEvent("CPoliceJob:Client:TakeOutOfVehicle", targetServerId)
+end)
+
 AddEventHandler('playerDropped', function()
     local src = source
     cuffedPlayers[src] = nil
+    if draggingPlayers[src] then
+        TriggerClientEvent("CPoliceJob:Client:Undrag", draggingPlayers[src])
+        draggingPlayers[src] = nil
+    end
 end)

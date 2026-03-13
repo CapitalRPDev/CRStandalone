@@ -4,6 +4,8 @@ local isFrontCuffed = false
 local isCuffed = false
 local cuffProp = 0
 local isCuffVisible = false
+local isBeingDragged = false 
+local dragger = nil
 
 CreateThread(function()
     InitScript()
@@ -36,6 +38,21 @@ function InitScript()
         )
     end
 end
+
+RegisterNetEvent("CPolice:Client:UseCuffItem", function()
+    local model = GetHashKey(Config.Props.cuffs)
+    RequestModel(model)
+    while not HasModelLoaded(model) do
+        Wait(0)
+    end
+    local playerPed = PlayerPedId()
+    local coords = GetEntityCoords(playerPed)
+    local cuff = CreateObject(model, coords.x, coords.y, coords.z, true, true, true)
+    AttachEntityToEntity(cuff, playerPed, GetPedBoneIndex(playerPed, 57005),
+        0.09, 0.06, 0.0, -6.0, 24.0, -36.0, true, true, false, false, 1, true)
+    SetEntityCollision(cuff, false, false)
+    SetModelAsNoLongerNeeded(model)
+end)
 
 local function loadAnimDict(dict)
     RequestAnimDict(dict)
@@ -108,6 +125,17 @@ CreateThread(function()
     end
 end)
 
+CreateThread(function()
+    while true do
+        Wait(0)
+        if isBeingDragged then
+            local playerPed = PlayerPedId()
+            local draggerPed = GetPlayerPed(GetPlayerFromServerId(dragger))
+            AttachEntityToEntity(playerPed, draggerPed, 11816, 0.54, 0.54, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
+        end
+    end
+end)
+
 local function GetClosestPlayer(maxDistance)
     local ped = PlayerPedId()
     local coords = GetEntityCoords(ped)
@@ -125,6 +153,23 @@ local function GetClosestPlayer(maxDistance)
     return closestPlayer, closestDistance
 end
 
+local function GetClosestVehicleToCoords(coords)
+    local vehicles = GetGamePool('CVehicle')
+    local closestVehicle = nil
+    local closestDistance = -1
+    for _, vehicle in ipairs(vehicles) do
+        if DoesEntityExist(vehicle) then
+            local vehicleCoords = GetEntityCoords(vehicle)
+            local distance = #(coords - vehicleCoords)
+            if closestDistance == -1 or distance < closestDistance then
+                closestVehicle = vehicle
+                closestDistance = distance
+            end
+        end
+    end
+    return closestVehicle, closestDistance
+end
+
 local function playIdleCuffAnim()
     if isFrontCuffed then
         if not loadAnimDict(Config.Anims.frontCuff.dict) then return end
@@ -136,6 +181,7 @@ local function playIdleCuffAnim()
             Config.CuffSettings.animBlendIn, Config.CuffSettings.animBlendOut, -1, 49, 0, false, false, false)
     end
 end
+
 local function spawnCuffProp()
     if DoesEntityExist(cuffProp) then
         DeleteEntity(cuffProp)
@@ -144,49 +190,31 @@ local function spawnCuffProp()
 
     local model = GetHashKey(Config.Props.cuffs)
     RequestModel(model)
-
     local startTime = GetGameTimer()
     while not HasModelLoaded(model) do
         Wait(0)
-        if GetGameTimer() - startTime > 5000 then
-            print("[CUFFS] Failed to load model")
-            return
-        end
+        if GetGameTimer() - startTime > 5000 then return end
     end
 
     local playerPed = PlayerPedId()
     local coords = GetEntityCoords(playerPed)
-
     cuffProp = CreateObject(model, coords.x, coords.y, coords.z, true, true, true)
-    if not DoesEntityExist(cuffProp) then
-        print("[CUFFS] Failed to create object")
-        return
-    end
+    if not DoesEntityExist(cuffProp) then return end
 
     local cuffConfig = isFrontCuffed and Config.Anims.frontCuff or Config.Anims.backCuff
     local pos = cuffConfig.boneOffset.pos
     local rot = cuffConfig.boneOffset.rot
     local boneIndex = GetPedBoneIndex(playerPed, cuffConfig.attachBone)
 
-    print("[CUFFS] isFrontCuffed:", isFrontCuffed)
-    print("[CUFFS] attachBone:", cuffConfig.attachBone)
-    print("[CUFFS] boneIndex:", boneIndex)
-    print("[CUFFS] prop exists:", DoesEntityExist(cuffProp))
-
     SetEntityCollision(cuffProp, false, false)
     SetEntityAsMissionEntity(cuffProp, true, true)
 
     AttachEntityToEntity(
-        cuffProp,
-        playerPed,
-        boneIndex,
+        cuffProp, playerPed, boneIndex,
         pos[1], pos[2], pos[3],
         rot[1], rot[2], rot[3],
         false, false, false, false, 2, true
     )
-
-    Wait(0)
-    print("[CUFFS] attached:", IsEntityAttached(cuffProp))
 
     isCuffVisible = true
     SetModelAsNoLongerNeeded(model)
@@ -199,6 +227,26 @@ local function deleteCuffProp()
     end
     cuffProp = 0
     isCuffVisible = false
+end
+
+local function ejectVehicle(playerPed)
+    if IsPedSittingInAnyVehicle(playerPed) then
+        local vehicle = GetVehiclePedIsIn(playerPed, false)
+        TaskLeaveVehicle(playerPed, vehicle, 256)
+        Wait(2000)
+    end
+end
+
+local function putInVehicleAsPassenger(playerPed, vehicle)
+    if IsEntityAVehicle(vehicle) then
+        for i = 1, math.max(GetVehicleMaxNumberOfPassengers(vehicle), 3) do
+            if IsVehicleSeatFree(vehicle, i) then
+                SetPedIntoVehicle(playerPed, vehicle, i)
+                return true
+            end
+        end
+    end
+    return false
 end
 
 RegisterNetEvent("CPoliceJob:Client:PlayCuffAnim", function(targetServerId, frontCuffed)
@@ -289,7 +337,6 @@ RegisterNetEvent("CPoliceJob:Client:PlayUncuffedAnim", function()
 end)
 
 RegisterNetEvent("CPoliceJob:Client:SetCuffed", function(value, cuffedBy)
-    print("received cuff state:", value, "by:", cuffedBy)
     if not value then
         isCuffed = false
         isFrontCuffed = false
@@ -302,51 +349,117 @@ RegisterNetEvent("CPoliceJob:Client:Notify", function(text, duration)
     Notify(text, duration)
 end)
 
-RegisterCommand("uncuff", function(source, args, rawCommand)
+RegisterNetEvent("CPoliceJob:Client:Drag", function(draggerId)
+    isBeingDragged = true
+    dragger = draggerId
+end)
+
+RegisterNetEvent("CPoliceJob:Client:Undrag", function()
+    isBeingDragged = false
+    dragger = nil
+    ClearPedTasks(PlayerPedId())
+    DetachEntity(PlayerPedId(), true, false)
+end)
+
+RegisterNetEvent("CPoliceJob:Client:CheckCuffStatus", function(sourcePlayerId)
+    local isHandcuffed = isCuffed
+    TriggerServerEvent("CPoliceJob:Server:HandleDragRequest", isHandcuffed, sourcePlayerId)
+end)
+
+RegisterNetEvent("CPoliceJob:Client:PutInVehicle", function(vehicleNetId)
+    local playerPed = PlayerPedId()
+    local vehicle = NetToVeh(vehicleNetId)
+    isBeingDragged = false
+    dragger = nil
+    DetachEntity(playerPed, true, false)
+    putInVehicleAsPassenger(playerPed, vehicle)
+    if DoesEntityExist(cuffProp) then
+        SetEntityVisible(cuffProp, false, false)
+    end
+end)
+
+RegisterNetEvent("CPoliceJob:Client:TakeOutOfVehicle", function()
+    ejectVehicle(PlayerPedId())
+    Wait(2100)
+    if isCuffed then
+        if DoesEntityExist(cuffProp) then
+            SetEntityVisible(cuffProp, true, false)
+        end
+        playIdleCuffAnim()
+    end
+end)
+
+RegisterCommand("uncuff", function()
     if not isPolice() then return end
     local playerId, distance = GetClosestPlayer(5.0)
-    if playerId == -1 then
-        Notify("No one is close to you...", 4000)
-        return
-    end
+    if playerId == -1 then Notify("No one is close to you...", 4000) return end
     local targetServerId = GetPlayerServerId(playerId)
-    if not targetServerId or targetServerId <= 0 then
-        print("[Error] - Could not find target server Id")
-        return
-    end
+    if not targetServerId or targetServerId <= 0 then return end
     TriggerServerEvent("CPoliceJob:Server:RequestUncuff", targetServerId)
 end, false)
 
-RegisterCommand("cuff", function(source, args, rawCommand)
+RegisterCommand("cuff", function()
     if not isPolice() then return end
     local playerId, distance = GetClosestPlayer(5.0)
-    if playerId == -1 then
-        Notify("No one is close to you...", 4000)
-        return
-    end
+    if playerId == -1 then Notify("No one is close to you...", 4000) return end
     local targetServerId = GetPlayerServerId(playerId)
-    if not targetServerId or targetServerId <= 0 then
-        print("[Error] - Could not find target server Id")
-        return
-    end
+    if not targetServerId or targetServerId <= 0 then return end
     TriggerServerEvent("CPoliceJob:Server:RequestCuff", targetServerId, false)
 end, false)
 
-RegisterCommand("frontcuff", function(source, args, rawCommand)
+RegisterCommand("frontcuff", function()
     if not isPolice() then return end
     local playerId, distance = GetClosestPlayer(5.0)
-    if playerId == -1 then
-        Notify("No one is close to you...", 4000)
-        return
-    end
+    if playerId == -1 then Notify("No one is close to you...", 4000) return end
     local targetServerId = GetPlayerServerId(playerId)
-    if not targetServerId or targetServerId <= 0 then
-        print("[Error] - Could not find target server Id")
-        return
-    end
+    if not targetServerId or targetServerId <= 0 then return end
     TriggerServerEvent("CPoliceJob:Server:RequestCuff", targetServerId, true)
 end, false)
 
+RegisterCommand("drag", function()
+    if not isPolice() then return end
+    local playerId, distance = GetClosestPlayer(3.0)
+    if playerId == -1 then Notify("No one is close to you...", 4000) return end
+    local targetServerId = GetPlayerServerId(playerId)
+    if not targetServerId or targetServerId <= 0 then return end
+    TriggerServerEvent("CPoliceJob:Server:RequestDrag", targetServerId)
+end, false)
+
+RegisterCommand("putinvehicle", function()
+    if not isPolice() then return end
+    local playerCoords = GetEntityCoords(PlayerPedId())
+    local playerId, playerDistance = GetClosestPlayer(3.0)
+    if playerId == -1 then Notify("No one is close to you...", 4000) return end
+    local closestVehicle, vehicleDistance = GetClosestVehicleToCoords(playerCoords)
+    if not closestVehicle or vehicleDistance > 5.0 then Notify("No vehicle nearby", 4000) return end
+    local targetServerId = GetPlayerServerId(playerId)
+    if not targetServerId or targetServerId <= 0 then return end
+    local vehicleNetId = VehToNet(closestVehicle)
+    TriggerServerEvent("CPoliceJob:Server:PutInVehicle", targetServerId, vehicleNetId)
+end, false)
+
+RegisterCommand("outofvehicle", function()
+    if not isPolice() then return end
+    local playerId, distance = GetClosestPlayer(5.0)
+    if playerId == -1 then Notify("No one is close to you...", 4000) return end
+    local targetServerId = GetPlayerServerId(playerId)
+    if not targetServerId or targetServerId <= 0 then return end
+    TriggerServerEvent("CPoliceJob:Server:TakeOutOfVehicle", targetServerId)
+end, false)
+
+
+
+RegisterKeyMapping("cuff", "Back Cuff Player", "keyboard", "UP")
+
+RegisterKeyMapping("uncuff", "Uncuff Player", "keyboard", "DOWN")
+
+RegisterKeyMapping("frontcuff", "Front Cuff Player", "keyboard", "PERIOD")
+
+RegisterKeyMapping("drag", "Drag/Undrag Player", "keyboard", "LEFT")
+
+RegisterKeyMapping("putinvehicle", "Put Player In Vehicle", "keyboard", "RIGHT")
+
+RegisterKeyMapping("outofvehicle", "Take Player Out Of Vehicle", "keyboard", "RIGHT")
 function Notify(text, duration)
     exports['CHud']:CNotification(text, "fa-duotone fa-solid fa-user-police", "#1B4F72", duration or 3000)
 end
