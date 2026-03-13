@@ -434,3 +434,52 @@ end
 
 exports('CProgressbar', CProgressbar)
 exports('CStopProgressbar', CStopProgressbar)
+
+
+
+local activeMinigame = false
+local successCallback = nil
+local failCallback = nil
+
+RegisterNUICallback("sliderMinigameResult", function(data, cb)
+    activeMinigame = false
+    SetNuiFocus(false, false)
+    if data.success then
+        if successCallback then successCallback() end
+    else
+        if failCallback then failCallback() end
+    end
+    successCallback = nil
+    failCallback = nil
+    cb({})
+end)
+
+exports('startSliderMinigame', function(options)
+    if activeMinigame then return end
+    activeMinigame = true
+    successCallback = options.onSuccess
+    failCallback = options.onFail
+
+    SetNuiFocus(true, false)
+
+    SendReactMessage('showSliderMinigame', {
+        speed     = options.speed    or 2,
+        required  = options.required or 3,
+        maxFaults = options.maxFaults or 2,
+    })
+end)
+
+
+RegisterCommand("testslider", function()
+    exports['CHud']:startSliderMinigame({
+        speed = 3,
+        required = 3,
+        maxFaults = 2,
+        onSuccess = function()
+            print("success!")
+        end,
+        onFail = function()
+            print("failed")
+        end
+    })
+end, false)
