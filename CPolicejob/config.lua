@@ -55,7 +55,7 @@ Config.Anims = {
             attachOffset = { x = 0.0, y = 0.6, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 180.0 }
         },
         criminal = { dict = "mp_arrest_paired", name = "crook_p2_back_left" },
-        criminalFront = { dict = "mp_arresting", name = "b_uncuff" }
+        criminalFront = { dict = "anim@move_m@prisoner_cuffed", name = "idle" }
     },
     uncuff = {
         officer = { 

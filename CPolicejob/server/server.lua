@@ -29,6 +29,11 @@ RegisterNetEvent("CPoliceJob:Server:RequestCuff", function(targetServerId, front
     local targetPlayer = QBCore.Functions.GetPlayer(targetServerId)
     if not targetPlayer then return end
 
+    if cuffedPlayers[targetServerId] then
+        TriggerClientEvent("CPoliceJob:Client:Notify", src, "This person is already cuffed", 4000)
+        return
+    end
+
     cuffedPlayers[targetServerId] = { cuffedBy = src, frontCuffed = frontCuffed }
 
     TriggerClientEvent("CPoliceJob:Client:PlayCuffAnim", src, targetServerId, frontCuffed)
