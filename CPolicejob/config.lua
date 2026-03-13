@@ -44,13 +44,21 @@ Config.Anims = {
         boneOffset = { pos = {-0.055, 0.06, 0.04}, rot = {265.0, 155.0, 80.0} }
     },
     cuffing = {
-        officer = { dict = "mp_arrest_paired", name = "cop_p2_back_left" },
+        officer = { 
+            dict = "mp_arrest_paired", 
+            name = "cop_p2_back_left",
+            attachOffset = { x = -0.1, y = -0.45, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 180.0 }
+        },
         criminal = { dict = "mp_arrest_paired", name = "crook_p2_back_left" }
     },
     uncuff = {
-        officer = { dict = "mp_arresting", name = "a_uncuff" },
+        officer = { 
+            dict = "mp_arresting", 
+            name = "a_uncuff",
+            attachOffset = { x = -0.1, y = -0.45, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 0.0 }
+        },
         criminal = { dict = "mp_arresting", name = "b_uncuff" }
-    }
+    },
 }
 
 Config.CuffSettings = {
