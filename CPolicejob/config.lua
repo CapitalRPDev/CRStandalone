@@ -26,7 +26,7 @@ Config.Items = {
 }
 
 Config.Props = {
-    cuffs = "p_cs_cuffs_02_s",  
+    cuffs = "p_cs_cuffs_02_s",
     legRestraints = ""
 }
 
@@ -41,7 +41,7 @@ Config.Anims = {
         dict = "mp_arresting",
         name = "idle",
         attachBone = 60309,
-        boneOffset = { pos = {-0.055, 0.06, 0.04}, rot = {265.0, 155.0, 80.0} }
+        boneOffset = { pos = {-0.03, 0.03, 0.02}, rot = {275.0, 165.0, 95.0} }
     },
     cuffing = {
         officer = { 
