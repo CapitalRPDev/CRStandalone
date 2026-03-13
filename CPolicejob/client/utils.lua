@@ -17,7 +17,7 @@ local debugIsEnabled = GetConvarInt(('%s-debugMode'):format(currentResourceName)
 --- A simple debug print function that is dependent on a convar
 --- will output a nice prettfied message if debugMode is on
 function debugPrint(...)
-  if not debugIsEnabled then return end
+  if not Config.Debug then return end
   local args <const> = { ... }
 
   local appendStr = ''

@@ -20,13 +20,10 @@ shared_scripts {
 
 client_script {
   "client/utils.lua",
-  "client/cl_open.lua",
   "client/client.lua"
 }
 server_script {
-  "serverConfig.lua",
-  "server/sv_open.lua",
-  "server/server.lua"
+  "server/server.lua",
 }
 
 files {
@@ -34,3 +31,7 @@ files {
     'web/build/**/*',
     'web/public/**/*',
 }
+
+
+
+data_file 'DLC_ITYP_REQUEST' 'stream/clamp.ytyp'
