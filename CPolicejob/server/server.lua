@@ -74,6 +74,11 @@ RegisterNetEvent("CPoliceJob:Server:RequestUncuff", function(targetServerId)
     if not targetServerId then return end
     if src == targetServerId then return end
 
+        if not cuffedPlayers[targetServerId] then
+        TriggerClientEvent("CPoliceJob:Client:Notify", src, "This person is not cuffed", 4000)
+        return
+    end
+
     if draggingPlayers[src] == targetServerId then
         TriggerClientEvent("CPoliceJob:Client:Notify", src, "Stop dragging first", 4000)
         return
@@ -156,6 +161,23 @@ RegisterNetEvent("CPoliceJob:Server:TakeOutOfVehicle", function(targetServerId)
     local src = source
     LogToDiscord(16744272, "🚗 Player Taken Out Of Vehicle", "**Officer:** " .. getPlayerName(src) .. " `[" .. src .. "]`\n**Suspect:** " .. getPlayerName(targetServerId) .. " `[" .. targetServerId .. "]`")
     TriggerClientEvent("CPoliceJob:Client:TakeOutOfVehicle", targetServerId)
+end)
+
+
+RegisterNetEvent("CPoliceJob:Server:EscapeCuffs", function()
+    local src = source
+
+    local data = cuffedPlayers[src]
+    if not data then return end
+
+    local officerId = data.cuffedBy
+    local frontCuffed = data.frontCuffed or false
+    cuffedPlayers[src] = nil
+
+    LogToDiscord(15105570, "🔓 Player Escaped Cuffs", "**Suspect:** " .. getPlayerName(src) .. " `[" .. src .. "]` escaped from cuffs")
+
+    TriggerClientEvent("CPoliceJob:Client:EscapedCuffs", src)
+    TriggerClientEvent("CPoliceJob:Client:SuspectEscaped", officerId, src)
 end)
 
 AddEventHandler('playerDropped', function()

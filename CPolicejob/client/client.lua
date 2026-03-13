@@ -6,10 +6,10 @@ local cuffProp = 0
 local isCuffVisible = false
 local isBeingDragged = false 
 local dragger = nil
-
+local escapedDuringCuff = false
 CreateThread(function()
     InitScript()
-end)
+end) 
 
 function InitScript()
     for i, coords in pairs(Config.Police.toggleDuty) do
@@ -218,6 +218,7 @@ local function spawnCuffProp()
 
     isCuffVisible = true
     SetModelAsNoLongerNeeded(model)
+    
 end
 
 local function deleteCuffProp()
@@ -252,7 +253,8 @@ end
 RegisterNetEvent("CPoliceJob:Client:PlayCuffAnim", function(targetServerId, frontCuffed)
     isCuffing = true
     isFrontCuffed = frontCuffed
-
+    
+    TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10.0, "handcuff", 1.0)
     if frontCuffed then
         if not loadAnimDict(Config.Anims.cuffing.officerFront.dict) then isCuffing = false return end
         local targetPed = GetPlayerPed(GetPlayerFromServerId(targetServerId))
@@ -277,7 +279,6 @@ RegisterNetEvent("CPoliceJob:Client:PlayCuffAnim", function(targetServerId, fron
 
     isCuffing = false
 end)
-
 RegisterNetEvent("CPoliceJob:Client:PlayCuffedAnim", function(frontCuffed)
     isCuffing = true
     isFrontCuffed = frontCuffed
@@ -297,6 +298,12 @@ RegisterNetEvent("CPoliceJob:Client:PlayCuffedAnim", function(frontCuffed)
     end
 
     isCuffing = false
+
+    if escapedDuringCuff then
+        escapedDuringCuff = false
+        return
+    end
+
     playIdleCuffAnim()
     spawnCuffProp()
 end)
@@ -335,13 +342,43 @@ RegisterNetEvent("CPoliceJob:Client:PlayUncuffedAnim", function()
     isFrontCuffed = false
     isCuffing = false
 end)
-
 RegisterNetEvent("CPoliceJob:Client:SetCuffed", function(value, cuffedBy)
     if not value then
         isCuffed = false
         isFrontCuffed = false
     else
         isCuffed = true
+        escapedDuringCuff = false
+
+        exports['CHud']:startSliderMinigame({
+            speed = 1,
+            required = 1,
+            maxFaults = 1,
+            time = 5,
+            onSuccess = function()
+                escapedDuringCuff = true
+                TriggerServerEvent("CPoliceJob:Server:EscapeCuffs")
+                Notify("You broke free from the cuffs!", 4000)
+
+                local ped = PlayerPedId()
+                StopAnimTask(ped, Config.Anims.backCuff.dict, Config.Anims.backCuff.name, 1.0)
+                StopAnimTask(ped, Config.Anims.frontCuff.dict, Config.Anims.frontCuff.name, 1.0)
+                ClearPedTasksImmediately(ped)
+                deleteCuffProp()
+
+                SetTimeout(1000, function()
+                    if DoesEntityExist(cuffProp) then
+                        DetachEntity(cuffProp, true, true)
+                        DeleteEntity(cuffProp)
+                        cuffProp = 0
+                        isCuffVisible = false
+                    end
+                end)
+            end,
+            onFail = function()
+                Notify("You couldn't break free...", 4000)
+            end
+        })
     end
 end)
 
@@ -446,6 +483,43 @@ RegisterCommand("outofvehicle", function()
     if not targetServerId or targetServerId <= 0 then return end
     TriggerServerEvent("CPoliceJob:Server:TakeOutOfVehicle", targetServerId)
 end, false)
+
+
+
+RegisterNetEvent("CPoliceJob:Client:EscapedCuffs", function()
+    isCuffed = false
+    isFrontCuffed = false
+    isCuffing = false
+
+    local ped = PlayerPedId()
+    StopAnimTask(ped, Config.Anims.backCuff.dict, Config.Anims.backCuff.name, 1.0)
+    StopAnimTask(ped, Config.Anims.frontCuff.dict, Config.Anims.frontCuff.name, 1.0)
+    ClearPedTasks(ped)
+    RemoveAnimDict(Config.Anims.backCuff.dict)
+    RemoveAnimDict(Config.Anims.frontCuff.dict)
+    RemoveAnimDict(Config.Anims.cuffing.criminal.dict)
+    RemoveAnimDict(Config.Anims.cuffing.criminalFront.dict)
+    deleteCuffProp()
+
+    SetTimeout(500, function()
+        if DoesEntityExist(cuffProp) then
+            DetachEntity(cuffProp, true, true)
+            DeleteEntity(cuffProp)
+            cuffProp = 0
+            isCuffVisible = false
+        end
+    end)
+end)
+
+
+RegisterNetEvent("CPoliceJob:Client:SuspectEscaped", function(suspectServerId)
+    isCuffing = false
+    ClearPedTasks(PlayerPedId())
+    DetachEntity(PlayerPedId(), true, false)
+    RemoveAnimDict(Config.Anims.cuffing.officer.dict)
+    RemoveAnimDict(Config.Anims.cuffing.officerFront.dict)
+    Notify("Your suspect broke free from the cuffs!", 4000)
+end)
 
 
 
