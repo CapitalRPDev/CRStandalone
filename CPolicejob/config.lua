@@ -47,15 +47,22 @@ Config.Anims = {
         officer = { 
             dict = "mp_arrest_paired", 
             name = "cop_p2_back_left",
-            attachOffset = { x = -0.1, y = -0.45, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 180.0 }
+            attachOffset = { x = 0.0, y = -0.6, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 0.0 }
         },
-        criminal = { dict = "mp_arrest_paired", name = "crook_p2_back_left" }
+        officerFront = {
+            dict = "mp_arresting",
+            name = "a_uncuff",
+            attachOffset = { x = 0.0, y = 0.6, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 180.0 }
+        },
+        criminal = { dict = "mp_arrest_paired", name = "crook_p2_back_left" },
+        criminalFront = { dict = "mp_arresting", name = "b_uncuff" }
     },
     uncuff = {
         officer = { 
             dict = "mp_arresting", 
             name = "a_uncuff",
-            attachOffset = { x = -0.1, y = -0.45, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 0.0 }
+            attachOffset = { x = -0.1, y = -0.45, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 0.0 },
+            attachOffsetFront = { x = 0.0, y = 0.6, z = 0.0, rotX = 0.0, rotY = 0.0, rotZ = 180.0 }
         },
         criminal = { dict = "mp_arresting", name = "b_uncuff" }
     },
