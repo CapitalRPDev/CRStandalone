@@ -1,0 +1,128 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: transparent;
+    font-family: "Roboto Mono", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    color: white;
+    overflow: hidden;
+}
+
+/* ─── Aim dot ─────────────────────────────────────────────────────────── */
+
+.mouse {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.aim-dot {
+    position: absolute;
+    top: 50vh;
+    left: 50vw;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.5), 0 0 12px rgba(100, 140, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
+/* ─── Keypad layout ───────────────────────────────────────────────────── */
+
+.keypad {
+    display: none;
+}
+
+img {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
+.content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+}
+
+.display {
+    position: absolute;
+    height: 18vh;
+    width: 63vw;
+    top: 18vh;
+    left: 50vw;
+    transform: translateX(-50%);
+    font-family: 'Seven Segment', sans-serif;
+    font-weight: 400;
+    font-size: 8vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: black;
+}
+
+.input {
+    position: absolute;
+    bottom: 4.7vh;
+    left: 41.2vw;
+    transform: translateX(-50%);
+    width: 52%;
+    height: 43%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.row {
+    display: flex;
+    width: 100%;
+    height: 25%;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────────────── */
+
+.btn {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    margin: 1vh;
+    border-radius: 4px;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn.active {
+    background-color: rgba(100, 140, 255, 0.25);
+    box-shadow: inset 0 0 8px rgba(100, 140, 255, 0.15);
+}
+
+.label {
+    font-size: 4vh;
+    font-weight: bold;
+}
+
+.sublabel {
+    font-size: 1.2vh;
+    color: #ccc;
+}

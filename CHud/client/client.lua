@@ -347,7 +347,7 @@ end)
 
 
 RegisterCommand("testnotify", function(source, args)
-    CNotification("Vehicle saved successfully!", "fa-check", "#2ecc71", 4000)
+    CNotification("Vehicle saved successfully!", "fa-user", "#2ecc71", 4000)
     
     SetTimeout(1000, function()
         CNotification("You are wanted by police!", "fa-shield", "#ff1744", 4000)
