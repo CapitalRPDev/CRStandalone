@@ -180,11 +180,46 @@ RegisterNetEvent("CPoliceJob:Server:EscapeCuffs", function()
     TriggerClientEvent("CPoliceJob:Client:SuspectEscaped", officerId, src)
 end)
 
+
+
+
+RegisterServerEvent('CPoliceJob:Server:tryTackle')
+AddEventHandler('CPoliceJob:Server:tryTackle', function(id)
+    local source = source
+    local user_id = QBCore.Functions.GetPlayer(source)
+    TriggerClientEvent('CPoliceJob:Server:playTackle', source)
+    TriggerClientEvent('CPoliceJob:Server:getTackled', id, source)
+end)
+
 AddEventHandler('playerDropped', function()
     local src = source
     cuffedPlayers[src] = nil
     if draggingPlayers[src] then
         TriggerClientEvent("CPoliceJob:Client:Undrag", draggingPlayers[src])
         draggingPlayers[src] = nil
+    end
+end)
+
+exports.ox_inventory:registerHook('swapItems', function(payload)
+    if not payload.fromSlot then return end
+    for i, stash in pairs(Config.Police.evidenceStash) do
+        local stashId = 'evidence_stash_' .. i
+        if payload.toInventory == stashId or payload.fromInventory == stashId then
+            local action = payload.toInventory == stashId and 'Added' or 'Removed'
+            local playerName = GetPlayerName(payload.source)
+            LogToDiscord(3447003, "🔍 Evidence Stash Activity",
+                "**Officer:** " .. playerName .. " `[" .. payload.source .. "]`\n" ..
+                "**Action:** " .. action .. "\n" ..
+                "**Item:** " .. payload.count .. "x " .. payload.fromSlot.label .. "\n" ..
+                "**Stash:** " .. stash.label
+            )
+        end
+    end
+end)
+
+AddEventHandler('onResourceStart', function(resourceName)
+    if resourceName ~= GetCurrentResourceName() then return end
+    for i, stash in pairs(Config.Police.evidenceStash) do
+        exports.ox_inventory:RegisterStash('evidence_stash_' .. i, stash.label, 50, 100000)
     end
 end)

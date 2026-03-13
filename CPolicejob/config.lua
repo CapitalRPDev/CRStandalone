@@ -6,6 +6,18 @@ Config.Police = {
     requireDuty = true,
     toggleDuty = {
         vector3(441.7707, -981.1050, 30.6894)
+    },
+    evidenceStash = {
+        [1] = {
+            label = "Main Evidence",
+            grade = 3,
+            coords = vector3(478.9845, -985.0586, 24.9159)
+        },
+        [2] = {
+            label = "CID Evidence",
+            grade = 2,
+            coords = vector3(481.6060, -989.4913, 24.9159)
+        },
     }
 }
 
@@ -29,6 +41,8 @@ Config.Props = {
     cuffs = "p_cs_cuffs_02_s",
     legRestraints = ""
 }
+
+
 
 Config.Anims = {
     frontCuff = {

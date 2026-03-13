@@ -20,6 +20,7 @@ shared_scripts {
 
 client_script {
   "client/utils.lua",
+  "client/laptopDui.lua",
   "client/client.lua"
 }
 server_script {
