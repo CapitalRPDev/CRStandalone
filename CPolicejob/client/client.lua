@@ -12,6 +12,29 @@ CreateThread(function()
 end) 
 
 function InitScript()
+    for i, coords in pairs(Config.LaptopCoords) do
+    exports['CInteraction']:createZone(
+        coords,
+        vector3(2.0, 2.0, 5.0),
+        {
+            id = ('police_laptop_%s'):format(i),
+            hideOnSelect = false,
+            prompts = {
+                {
+                    label = "Police Laptop",
+                    sublabel = "Access police database",
+                    icon = "fa-solid fa-laptop",
+                    action = function()
+                        OpenTestDui()
+                    end,
+                    canInteract = function()
+                        return QBCore.Functions.GetPlayerData().job.name == 'police'
+                    end
+                },
+            }
+        }
+    )
+end
     for i, coords in pairs(Config.Police.toggleDuty) do
         exports['CInteraction']:createZone(
             coords,

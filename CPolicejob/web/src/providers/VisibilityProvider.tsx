@@ -21,7 +21,8 @@ interface VisibilityProviderValue {
 export const VisibilityProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [visible, setVisible] = useState(isEnvBrowser() ? true : false);
+ const isDui = new URLSearchParams(window.location.search).get('mode') === 'dui';
+const [visible, setVisible] = useState(isEnvBrowser() || isDui ? true : false);
 
   useNuiEvent<boolean>("setVisible", setVisible);
 

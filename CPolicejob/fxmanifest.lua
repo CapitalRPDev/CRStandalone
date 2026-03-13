@@ -29,7 +29,7 @@ server_script {
 
 files {
     'web/build/index.html',
-    'web/build/**/*',
+    'web/build/assets/**/*',
     'web/public/**/*',
 }
 

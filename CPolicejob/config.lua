@@ -1,6 +1,9 @@
 Config = {}
 Config.Debug = true
 
+
+Config.MouseSensitivity = 0.15
+
 Config.Police = {
     job = "police",
     requireDuty = true,
@@ -87,4 +90,34 @@ Config.CuffSettings = {
     uncuffDuration = 6000,
     animBlendIn = 8.0,
     animBlendOut = -8.0,
+}
+
+
+
+
+
+
+
+
+
+Config.LaptopProp      = 'prop_laptop_lester2'
+Config.LaptopTexDict   = 'prop_laptop_lester2'
+Config.LaptopScreenTextures = {
+    'script_rt_tvscreen',       -- Correct texture name for prop_laptop_lester2
+}
+Config.LaptopCoords = {
+    vector4(439.7604, -981.3269, 30.5678, 90.0000),
+    vector4(451.6620, -976.1751, 30.5803, 95.0000)
+}
+Config.LaptopHeading   = 89.4
+
+-- ─── DUI ───────────────────────────────────────────────────────────────────
+Config.DuiWidth  = 1024
+Config.DuiHeight = 512
+
+Config.ScreenBounds = {
+    L = 0.36,
+    T = 0.10,
+    R = 0.88,
+    B = 0.55,
 }
