@@ -12,7 +12,7 @@ local function DUI_Init()
         Wait(10); attempts = attempts + 1
     end
     if not HasModelLoaded(hash) then
-        print('^1[DUI] ERROR: Failed to load model ' .. Config.LaptopProp .. '^7')
+        debugPrint('^1[DUI] ERROR: Failed to load model ' .. Config.LaptopProp .. '^7')
         return
     end
 
@@ -27,7 +27,7 @@ local function DUI_Init()
             Wait(10); wait = wait + 1
         end
         if not IsDuiAvailable(_duiObj) then
-            print('^1[DUI] ERROR: DUI failed to become available^7')
+            debugPrint('^1[DUI] ERROR: DUI failed to become available^7')
             return
         end
 
@@ -41,7 +41,7 @@ local function DUI_Init()
 
         Wait(100)
         _isReady = true
-        if Config.Debug then print('^2[DUI] Ready^7') end
+        if Config.Debug then debugPrint('^2[DUI] Ready^7') end
     end)
 end
 
@@ -204,7 +204,7 @@ end)
 function OpenTestDui()
     if _testOpen then CloseTestDui() return end
     if not DUI_IsReady() then
-        print('^3[TESTDUI] DUI not ready yet^7')
+        debugPrint('^3[TESTDUI] DUI not ready yet^7')
         return
     end
 
@@ -244,11 +244,11 @@ function OpenTestDui()
     end)
 
     lib.callback('CPolicejob:getAllOfficers', false, function(officers)
-        print('[TESTDUI] getAllOfficers: ' .. json.encode(officers))
+        debugPrint('[TESTDUI] getAllOfficers: ' .. json.encode(officers))
         DUI_Send({ type = 'setAllOfficers', data = officers or {} })
     end)
 lib.callback('CPolicejob:getLoginDetails', false, function(details)
-    print('[TESTDUI] Login details: ' .. json.encode(details))
+    debugPrint('[TESTDUI] Login details: ' .. json.encode(details))
     if details then
         DUI_Send({ type = 'setCorrectLoginDetails', data = details })
     end
@@ -282,11 +282,11 @@ RegisterNUICallback('duiAction', function(data, cb)
     local action = tostring(data.action or '')
 
     if action == 'toggleDuty' then
-        print('[TESTDUI] Toggle duty received')
+        debugPrint('[TESTDUI] Toggle duty received')
         TriggerServerEvent("CPolice:Server:ToggleDuty")
 
     elseif action == 'hireOfficer' then
-        print('[SERVER] hireOfficer data: ' .. json.encode(data))
+        debugPrint('[SERVER] hireOfficer data: ' .. json.encode(data))
         TriggerServerEvent('CPolicejob:Server:HireOfficer', {
             cid      = data.citizenid,
             name     = data.name,

@@ -218,7 +218,6 @@ RegisterNetEvent('CPolicejob:Server:SetActiveEvidenceCode', function(code, stash
         code    = code,
         stashId = stashId
     }
-    print('[SERVER] Active evidence session set for ' .. src .. ': ' .. code .. ' -> ' .. stashId)
 end)
 
 
@@ -240,13 +239,13 @@ exports.ox_inventory:registerHook('swapItems', function(payload)
                 if itemName == 'evidence_pack' then
                     local session = activeEvidenceSessions[payload.source]
                     if not session then
-                        print('[SERVER] Blocked evidence_pack: no active session for player ' .. payload.source)
+                        debugPrintServer('[SERVER] Blocked evidence_pack: no active session for player ' .. payload.source)
                         return false
                     end
 
                     local packMetadata = payload.fromSlot.metadata
                     if not packMetadata or not packMetadata.pack_id then
-                        print('[SERVER] Blocked evidence_pack: no pack_id in metadata')
+                        debugPrintServer('[SERVER] Blocked evidence_pack: no pack_id in metadata')
                         return false
                     end
 
@@ -256,11 +255,11 @@ exports.ox_inventory:registerHook('swapItems', function(payload)
                     )
 
                     if not result or not result[1] then
-                        print('[SERVER] Blocked evidence_pack: pack_id ' .. packMetadata.pack_id .. ' not linked to code ' .. session.code)
+                        debugPrintServer('[SERVER] Blocked evidence_pack: pack_id ' .. packMetadata.pack_id .. ' not linked to code ' .. session.code)
                         return false
                     end
 
-                    print('[SERVER] Allowed evidence_pack: ' .. packMetadata.pack_id .. ' linked to ' .. session.code)
+                    debugPrintServer('[SERVER] Allowed evidence_pack: ' .. packMetadata.pack_id .. ' linked to ' .. session.code)
                 end
             end
         end
@@ -269,7 +268,7 @@ exports.ox_inventory:registerHook('swapItems', function(payload)
     if payload.toInventory and tostring(payload.toInventory):sub(1, 4) == 'EVP-' then
         local itemName = payload.fromSlot and payload.fromSlot.name
         if itemName ~= 'evidence_bag' then
-            print('[SERVER] Blocked non-evidence_bag item from evidence pack: ' .. tostring(itemName))
+            debugPrintServer('[SERVER] Blocked non-evidence_bag item from evidence pack: ' .. tostring(itemName))
             return false
         end
     end
@@ -286,9 +285,9 @@ lib.callback.register('CPolicejob:getLoginDetails', function(source)
     local Player = QBCore.Functions.GetPlayer(source)
     if not Player then return nil end
     local citizenid = Player.PlayerData.citizenid
-    print('[SERVER] getLoginDetails: querying for citizenid: ' .. tostring(citizenid))
+    debugPrintServer('[SERVER] getLoginDetails: querying for citizenid: ' .. tostring(citizenid))
     local result = exports.oxmysql:query_async('SELECT name, password FROM police_officers WHERE citizenid = ?', { citizenid })
-    print('[SERVER] getLoginDetails: result: ' .. json.encode(result))
+    debugPrintServer('[SERVER] getLoginDetails: result: ' .. json.encode(result))
     if result and result[1] then
         return { username = result[1].name, password = result[1].password }
     end
@@ -322,11 +321,11 @@ RegisterNetEvent('CPolicejob:Server:HireOfficer', function(data)
     Target.Functions.SetJob("police", 1)
     if not Player then return end
 
-    print('[SERVER] hireOfficer data: ' .. json.encode(data))
+    debugPrintServer('[SERVER] hireOfficer data: ' .. json.encode(data))
 
     local existing = exports.oxmysql:query_async('SELECT id FROM police_officers WHERE citizenid = ?', { data.cid })
     if existing and existing[1] then
-        print('[SERVER] Officer already exists with citizenid: ' .. tostring(data.cid))
+        debugPrintServer('[SERVER] Officer already exists with citizenid: ' .. tostring(data.cid))
         TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = false, message = 'Officer already exists' })
         return
     end
@@ -336,7 +335,7 @@ RegisterNetEvent('CPolicejob:Server:HireOfficer', function(data)
         { data.cid, data.name, data.callsign, data.division, data.grade, data.password, Player.PlayerData.citizenid },
         function(rowsChanged)
             if rowsChanged > 0 then
-                print('[SERVER] Officer hired: ' .. data.name)
+                debugPrintServer('[SERVER] Officer hired: ' .. data.name)
                 TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = true, action = 'hire' })
             end
         end
@@ -353,7 +352,7 @@ RegisterNetEvent('CPolicejob:Server:FireOfficer', function(data)
         { data.id },
         function(rowsChanged)
             if rowsChanged > 0 then
-                print('[SERVER] Officer fired: id ' .. tostring(data.id))
+                debugPrintServer('[SERVER] Officer fired: id ' .. tostring(data.id))
                 TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = true, action = 'fire' })
             end
         end
@@ -395,7 +394,7 @@ RegisterNetEvent('CPolicejob:Server:LogEvidence', function(data)
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
 
-    print('[SERVER] Evidence logged: ' .. json.encode(data))
+    debugPrintServer('[SERVER] Evidence logged: ' .. json.encode(data))
 
    exports.oxmysql:execute_async(
     'INSERT INTO police_evidence (code, cad_reference, callsign, material, pack_id, comment, logged_by, logged_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
@@ -436,12 +435,12 @@ RegisterNetEvent("CPolicejob:Server:RegisterEvidenceBagStash", function(slot)
     exports.ox_inventory:RegisterStash(stashId, 'Evidence Bag - ' .. stashId, 1, 100000)
 
     local inventory = exports.ox_inventory:GetInventory(src)
-    print('[SERVER] Setting metadata for slot ' .. tostring(slot) .. ' stashId: ' .. stashId)
+    debugPrintServer('[SERVER] Setting metadata for slot ' .. tostring(slot) .. ' stashId: ' .. stashId)
     
     exports.ox_inventory:SetMetadata(src, slot, { stash_id = stashId })
     
     local item = exports.ox_inventory:GetSlot(src, slot)
-    print('[SERVER] Item after metadata set: ' .. json.encode(item))
+    debugPrintServer('[SERVER] Item after metadata set: ' .. json.encode(item))
 
     TriggerClientEvent("CPolicejob:Client:OpenEvidenceStash", src, stashId)
 end)
@@ -463,7 +462,7 @@ RegisterNetEvent("CPolicejob:Server:RegisterEvidencePackStash", function(slot)
 
     exports.ox_inventory:SetMetadata(src, slot, { pack_id = packId })
 
-    print('[SERVER] Evidence pack stash created: ' .. packId)
+    debugPrintServer('[SERVER] Evidence pack stash created: ' .. packId)
 
     TriggerClientEvent("CPolicejob:Client:OpenEvidencePackStash", src, packId)
 end)
@@ -511,19 +510,19 @@ AddEventHandler('onResourceStart', function(resource)
 
     Wait(3000) -- wait for ox_inventory to fully start
 
-    print('[SERVER] Re-registering evidence stashes...')
+    debugPrintServer('[SERVER] Re-registering evidence stashes...')
 
     local rows = exports.oxmysql:query_async("SELECT data FROM ox_inventory WHERE data LIKE '%stash_id%'")
-    print('[SERVER] Found rows: ' .. tostring(rows and #rows or 0))
+    debugPrintServer('[SERVER] Found rows: ' .. tostring(rows and #rows or 0))
     if rows then
         for _, v in pairs(rows) do
             local data = json.decode(v.data)
             if data then
                 for _, item in pairs(data) do
                     if item and item.name == 'evidence_bag' and item.metadata and item.metadata.stash_id then
-                        print('[SERVER] Re-registering: ' .. item.metadata.stash_id)
+                        debugPrintServer('[SERVER] Re-registering: ' .. item.metadata.stash_id)
                         exports.ox_inventory:RegisterStash(item.metadata.stash_id, 'Evidence Bag - ' .. item.metadata.stash_id, 10, 100000)
-                        print('[SERVER] Re-registered evidence bag stash: ' .. item.metadata.stash_id)
+                        debugPrintServer('[SERVER] Re-registered evidence bag stash: ' .. item.metadata.stash_id)
                     end
                 end
             end
@@ -540,10 +539,19 @@ AddEventHandler('onResourceStart', function(resource)
                         exports.ox_inventory:RegisterStash(item.metadata.pack_id, 'Evidence Pack - ' .. item.metadata.pack_id, 50, 100000, {
                             { name = 'evidence_bag', count = 50 }
                         })
-                        print('[SERVER] Re-registered evidence pack stash: ' .. item.metadata.pack_id)
+                        debugPrintServer('[SERVER] Re-registered evidence pack stash: ' .. item.metadata.pack_id)
                     end
                 end
             end
         end
     end
 end)
+
+
+
+function debugPrintServer(msg)
+    if Config.Debug then 
+        print("^3[Police] ^2" .. msg)
+    end
+
+end

@@ -823,7 +823,7 @@ RegisterKeyMapping('tackle', 'Tackle Player (SHIFT + )', 'keyboard', 'G')
 
 RegisterNUICallback('CPolicejob:Client:ToggleDuty', function(data, cb)
     cb({ success = true })
-    print("Received toggle duty")
+    debugPrint("Received toggle duty")
     TriggerServerEvent("CPolice:Server:ToggleDuty")
 
 end)
@@ -879,15 +879,15 @@ RegisterNetEvent("CPolice:Client:UseEvidencePack", function(data)
         end
     end
 
-    print('[CLIENT] evidence_pack found: ' .. json.encode(item))
+    debugPrint('[CLIENT] evidence_pack found: ' .. json.encode(item))
 
     local metadata = item and item.metadata
 
     if metadata and metadata.pack_id then
-        print('[CLIENT] Opening existing pack stash: ' .. metadata.pack_id)
+        debugPrint('[CLIENT] Opening existing pack stash: ' .. metadata.pack_id)
         exports.ox_inventory:openInventory('stash', metadata.pack_id)
     else
-        print('[CLIENT] No pack ID, creating new pack stash')
+        debugPrint('[CLIENT] No pack ID, creating new pack stash')
         TriggerServerEvent("CPolicejob:Server:RegisterEvidencePackStash", slot)
     end
 end)
@@ -907,3 +907,11 @@ AddEventHandler('onResourceStop', function(resourceName)
         exports['CInteraction']:removeZone(('police_toggle_duty_%s'):format(i))
     end
 end)
+
+
+function debugdebugPrint(msg)
+    if Config.Debug then 
+        print("^3[Police] ^2" .. msg)
+    end
+
+end
