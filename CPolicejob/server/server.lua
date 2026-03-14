@@ -3,7 +3,7 @@ local cuffedPlayers = {}
 local draggingPlayers = {}
 local officersOnDuty = {}
 local webhook = "https://discord.com/api/webhooks/1481972728876761222/fEzgz-3G24pP_7ufjJW5CUwgCPC8Wgep7lQ-BihjgqrpdLDZ6uk7DVBvrY7727WPAe-w"
-
+local activeEvidenceSessions = {}
 function LogToDiscord(color, title, description)
     local embed = {
         {
@@ -211,8 +211,19 @@ AddEventHandler('playerDropped', function()
     end
 end)
 
+
+
+RegisterNetEvent('CPolicejob:Server:SetActiveEvidenceCode', function(code, stashId)
+    local src = source
+    activeEvidenceSessions[src] = {
+        code    = code,
+        stashId = stashId
+    }
+    print('[SERVER] Active evidence session set for ' .. src .. ': ' .. code .. ' -> ' .. stashId)
+end)
+
+
 exports.ox_inventory:registerHook('swapItems', function(payload)
-    if not payload.fromSlot then return end
     for i, stash in pairs(Config.Police.evidenceStash) do
         local stashId = 'evidence_stash_' .. i
         if payload.toInventory == stashId or payload.fromInventory == stashId then
@@ -224,6 +235,43 @@ exports.ox_inventory:registerHook('swapItems', function(payload)
                 "**Item:** " .. payload.count .. "x " .. payload.fromSlot.label .. "\n" ..
                 "**Stash:** " .. stash.label
             )
+
+            if payload.toInventory == stashId then
+                local itemName = payload.fromSlot and payload.fromSlot.name
+                if itemName == 'evidence_pack' then
+                    local session = activeEvidenceSessions[payload.source]
+                    if not session then
+                        print('[SERVER] Blocked evidence_pack: no active session for player ' .. payload.source)
+                        return false
+                    end
+
+                    local packMetadata = payload.fromSlot.metadata
+                    if not packMetadata or not packMetadata.pack_id then
+                        print('[SERVER] Blocked evidence_pack: no pack_id in metadata')
+                        return false
+                    end
+
+                    local result = exports.oxmysql:query_async(
+                        'SELECT id FROM police_evidence WHERE code = ? AND pack_id = ?',
+                        { session.code, packMetadata.pack_id }
+                    )
+
+                    if not result or not result[1] then
+                        print('[SERVER] Blocked evidence_pack: pack_id ' .. packMetadata.pack_id .. ' not linked to code ' .. session.code)
+                        return false
+                    end
+
+                    print('[SERVER] Allowed evidence_pack: ' .. packMetadata.pack_id .. ' linked to ' .. session.code)
+                end
+            end
+        end
+    end
+
+    if payload.toInventory and tostring(payload.toInventory):sub(1, 4) == 'EVP-' then
+        local itemName = payload.fromSlot and payload.fromSlot.name
+        if itemName ~= 'evidence_bag' then
+            print('[SERVER] Blocked non-evidence_bag item from evidence pack: ' .. tostring(itemName))
+            return false
         end
     end
 end)
@@ -352,10 +400,10 @@ RegisterNetEvent('CPolicejob:Server:LogEvidence', function(data)
 
     print('[SERVER] Evidence logged: ' .. json.encode(data))
 
-    exports.oxmysql:execute_async(
-        'INSERT INTO police_evidence (code, cad_reference, callsign, material, pack_id, comment, logged_by, logged_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
-        { data.code, data.cadReference, data.callsign, data.material, data.packId, data.comment, Player.PlayerData.citizenid }
-    )
+   exports.oxmysql:execute_async(
+    'INSERT INTO police_evidence (code, cad_reference, callsign, material, pack_id, comment, logged_by, logged_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+    { data.code, data.cadReference, data.callsign, data.material, data.packId, data.comment, Player.PlayerData.citizenid }
+)
 
     LogToDiscord(3066993, "🔬 Evidence Logged", 
         "**Officer:** " .. GetPlayerName(src) .. "\n" ..
@@ -376,8 +424,75 @@ lib.callback.register('CPolicejob:validateEvidenceCode', function(source, code)
 end)
 
 
+
+RegisterNetEvent("CPolicejob:Server:RegisterEvidenceBagStash", function(slot)
+    local src = source
+
+    local chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    local stashId = 'EVS-'
+    for i = 1, 8 do
+        local randIndex = math.random(1, #chars)
+        stashId = stashId .. chars:sub(randIndex, randIndex)
+    end
+
+    exports.ox_inventory:RegisterStash(stashId, 'Evidence Bag - ' .. stashId, 1, 100000)
+
+    local inventory = exports.ox_inventory:GetInventory(src)
+    print('[SERVER] Setting metadata for slot ' .. tostring(slot) .. ' stashId: ' .. stashId)
+    
+    exports.ox_inventory:SetMetadata(src, slot, { stash_id = stashId })
+    
+    local item = exports.ox_inventory:GetSlot(src, slot)
+    print('[SERVER] Item after metadata set: ' .. json.encode(item))
+
+    TriggerClientEvent("CPolicejob:Client:OpenEvidenceStash", src, stashId)
+end)
+
+
+RegisterNetEvent("CPolicejob:Server:RegisterEvidencePackStash", function(slot)
+    local src = source
+
+    local chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    local packId = 'EVP-'
+    for i = 1, 8 do
+        local randIndex = math.random(1, #chars)
+        packId = packId .. chars:sub(randIndex, randIndex)
+    end
+
+    exports.ox_inventory:RegisterStash(packId, 'Evidence Pack - ' .. packId, 50, 100000, {
+        { name = 'evidence_bag', count = 50 }
+    })
+
+    exports.ox_inventory:SetMetadata(src, slot, { pack_id = packId })
+
+    print('[SERVER] Evidence pack stash created: ' .. packId)
+
+    TriggerClientEvent("CPolicejob:Client:OpenEvidencePackStash", src, packId)
+end)
+
+
+lib.callback.register('CPolicejob:Server:RegisterPackToStash', function(source, slot, stashId)
+    local src = source
+
+    local chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    local packId = 'EVP-'
+    for i = 1, 8 do
+        local randIndex = math.random(1, #chars)
+        packId = packId .. chars:sub(randIndex, randIndex)
+    end
+
+    exports.ox_inventory:RegisterStash(packId, 'Evidence Pack - ' .. packId, 50, 100000, {
+        { name = 'evidence_bag', count = 50 }
+    })
+
+    exports.ox_inventory:SetMetadata(src, slot, { pack_id = packId })
+
+    return packId
+end)
+
 AddEventHandler('playerDropped', function()
     local src = source
+    activeEvidenceSessions[src] = nil
     if officersOnDuty[src] then
         officersOnDuty[src] = nil
         local Player = QBCore.Functions.GetPlayer(src)

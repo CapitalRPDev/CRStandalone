@@ -37,7 +37,9 @@ Config.Items = {
     cuffs = "handcuffs",
     legRestraints = "leg_restraints",
     gloves = "gloves",
-    bodycam = "bodycam"
+    bodycam = "bodycam",
+    evidenceBag = "evidence_bag",
+    evidencePack = "evidence_pack"
 }
 
 Config.Props = {

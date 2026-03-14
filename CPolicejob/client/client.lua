@@ -83,11 +83,53 @@ exports['CInteraction']:createZone(
 
                     lib.callback('CPolicejob:validateEvidenceCode', false, function(valid)
                         if valid then
+                            TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
                             exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
                         else
                             lib.notify({ title = 'Evidence', description = 'Invalid evidence code', type = 'error' })
                         end
                     end, code)
+                end,
+                canInteract = function()
+                    local playerData = QBCore.Functions.GetPlayerData()
+                    return playerData.job.name == 'police' and playerData.job.grade.level >= stash.grade
+                end
+            },
+            {
+                label = "Evidence Pack",
+                sublabel = "Register & open evidence pack stash",
+                icon = "fa-solid fa-box",
+                action = function()
+                    local items = exports.ox_inventory:GetPlayerItems()
+                    local pack = nil
+
+                    for _, v in pairs(items) do
+                        if v.name == 'evidence_pack' then
+                            pack = v
+                            break
+                        end
+                    end
+
+                    if not pack then
+                        lib.notify({ title = 'Evidence', description = 'You do not have an evidence pack', type = 'error' })
+                        return
+                    end
+
+                    local packId = pack.metadata and pack.metadata.pack_id
+
+                    if not packId then
+                        lib.notify({ title = 'Evidence', description = 'This pack has no ID assigned', type = 'error' })
+                        return
+                    end
+
+                    exports.ox_inventory:openInventory('stash', packId)
+
+                    exports['CHud']:CNotification(
+                        'Evidence Pack ID: ' .. packId,
+                        "fa-duotone fa-solid fa-box",
+                        "#1B4F72",
+                        20000
+                    )
                 end,
                 canInteract = function()
                     local playerData = QBCore.Functions.GetPlayerData()
@@ -784,6 +826,65 @@ RegisterNetEvent('CPolicejob:Client:BossActionResult', function(result)
     end
 end)
 
+
+RegisterNetEvent("CPolice:Client:UseEvidenceBag", function(data)
+    local slot = data.slot
+    local items = exports.ox_inventory:GetPlayerItems()
+    local item = nil
+
+    for _, v in pairs(items) do
+        if v.slot == slot then
+            item = v
+            break
+        end
+    end
+
+    print('[CLIENT] item found: ' .. json.encode(item))
+
+    local metadata = item and item.metadata
+
+    if metadata and metadata.stash_id then
+        print('[CLIENT] Opening existing stash: ' .. metadata.stash_id)
+        exports.ox_inventory:openInventory('stash', metadata.stash_id)
+    else
+        print('[CLIENT] No stash ID, creating new stash')
+        TriggerServerEvent("CPolicejob:Server:RegisterEvidenceBagStash", slot)
+    end
+end)
+
+
+RegisterNetEvent("CPolice:Client:UseEvidencePack", function(data)
+    local slot = data.slot
+    local items = exports.ox_inventory:GetPlayerItems()
+    local item = nil
+
+    for _, v in pairs(items) do
+        if v.slot == slot then
+            item = v
+            break
+        end
+    end
+
+    print('[CLIENT] evidence_pack found: ' .. json.encode(item))
+
+    local metadata = item and item.metadata
+
+    if metadata and metadata.pack_id then
+        print('[CLIENT] Opening existing pack stash: ' .. metadata.pack_id)
+        exports.ox_inventory:openInventory('stash', metadata.pack_id)
+    else
+        print('[CLIENT] No pack ID, creating new pack stash')
+        TriggerServerEvent("CPolicejob:Server:RegisterEvidencePackStash", slot)
+    end
+end)
+
+RegisterNetEvent("CPolicejob:Client:OpenEvidencePackStash", function(packId)
+    exports.ox_inventory:openInventory('stash', packId)
+end)
+
+RegisterNetEvent("CPolicejob:Client:OpenEvidenceStash", function(stashId)
+    exports.ox_inventory:openInventory('stash', stashId)
+end)
 
 
 AddEventHandler('onResourceStop', function(resourceName)
