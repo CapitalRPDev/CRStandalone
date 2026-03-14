@@ -123,12 +123,12 @@ exports['CInteraction']:createZone(
                     end
 
                     exports.ox_inventory:openInventory('stash', packId)
-
+                    lib.setClipboard(packId)
                     exports['CHud']:CNotification(
-                        'Evidence Pack ID: ' .. packId,
+                        'Pack ID  copied',
                         "fa-duotone fa-solid fa-box",
                         "#1B4F72",
-                        20000
+                        3000
                     )
                 end,
                 canInteract = function()
