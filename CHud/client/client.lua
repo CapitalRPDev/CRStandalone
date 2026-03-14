@@ -346,29 +346,21 @@ Citizen.CreateThread(function()
 end)
 
 
-RegisterCommand("testnotify", function(source, args)
-    CNotification("Vehicle saved successfully!", "fa-user", "#2ecc71", 4000)
-    
-    SetTimeout(1000, function()
-        CNotification("You are wanted by police!", "fa-shield", "#ff1744", 4000)
-    end)
-    
-    SetTimeout(2000, function()
-        CNotification("New message received", "fa-envelope", "#00aeff", 4000)
-    end)
-    
-    SetTimeout(3000, function()
-        CNotification("Low on fuel!", "fa-gas-pump", "#f39c12", 4000)
-    end)
+
+
+RegisterCommand("togglehud", function(source, args, rawCommand)
+
+    if not hidden then 
+        hidden = true
+        DisplayRadar(false)
+        toggleNuiFrame(false)
+    else 
+        hidden = false
+        toggleNuiFrame(true)
+        DisplayRadar(true)
+end
+
 end, false)
-
-
-RegisterCommand("testprogress", function(source, args)
-    CProgressbar("Loading Bullets", "fa-gun", "#00aeff", 5000, true, false, function()
-        CNotification("Bullets loaded!", "fa-check", "#00aeff", 4000)
-    end)
-end, false)
-
 
 
 function CNotification(message, icon, color, duration)
