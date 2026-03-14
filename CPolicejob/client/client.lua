@@ -141,6 +141,8 @@ exports['CInteraction']:createZone(
 end
 end
 
+
+
 RegisterNetEvent("CPolice:Client:UseCuffItem", function()
     local model = GetHashKey(Config.Props.cuffs)
     RequestModel(model)

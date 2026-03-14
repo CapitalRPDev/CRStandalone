@@ -29,7 +29,6 @@ RegisterNetEvent("CPolice:Server:ToggleDuty", function()
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
-
     if Player.PlayerData.job.onduty then
         Player.Functions.SetJobDuty(false)
         officersOnDuty[src] = nil
@@ -319,6 +318,8 @@ end)
 RegisterNetEvent('CPolicejob:Server:HireOfficer', function(data)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
+    local Target = QBCore.Functions.GetPlayerByCitizenId(data.cid)
+    Target.Functions.SetJob("police", 1)
     if not Player then return end
 
     print('[SERVER] hireOfficer data: ' .. json.encode(data))
@@ -336,10 +337,6 @@ RegisterNetEvent('CPolicejob:Server:HireOfficer', function(data)
         function(rowsChanged)
             if rowsChanged > 0 then
                 print('[SERVER] Officer hired: ' .. data.name)
-                local NewOfficer = QBCore.Functions.GetPlayerByCitizenId(data.cid)
-                if NewOfficer then
-                    NewOfficer.Functions.SetJob('police', 1)
-                end
                 TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = true, action = 'hire' })
             end
         end
