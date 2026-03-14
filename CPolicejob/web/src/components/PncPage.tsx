@@ -7,7 +7,7 @@ const PncPage: React.FC = () => {
                     <i className="fa-solid fa-minus"></i>
                     <i className="fa-solid fa-x"></i>
                 </div>
-                 <h1>Duty Page</h1>
+                 <h1>COMING SOON</h1>
             </div>
     );
 };
