@@ -28,13 +28,8 @@ const App: React.FC = () => {
     const handler = (e: MessageEvent) => {
       const data = e.data;
 
-      // Handle DUI_Send messages (type field instead of action field)
-      if (data?.type === 'setCorrectLoginDetails') {
-        setCorrectLoginDetails(data.data);
-      }
-      if (data?.type === 'setPlayerData') {
-        setPlayerData(data.data);
-      }
+      if (data?.type === 'setCorrectLoginDetails') setCorrectLoginDetails(data.data);
+      if (data?.type === 'setPlayerData') setPlayerData(data.data);
 
       if (data?.type === 'cursor') {
         setCursorPos({ x: data.x, y: data.y });
@@ -43,32 +38,26 @@ const App: React.FC = () => {
       if (data?.type === 'click') {
         setCursorPos({ x: data.x, y: data.y });
         const el = document.elementFromPoint(data.x, data.y) as HTMLElement;
-        console.log('[CLICK] at', data.x, data.y, 'pressed:', data.pressed, '| el:', el?.tagName, el?.className);
+        if (!el) return;
 
-        if (el) {
-          if (data.pressed) {
-            if (el.tagName === 'INPUT') {
-              const inputType = (el as HTMLInputElement).type;
-              (window as any)._duiActiveField = inputType === 'password' ? 'password' : 'username';
-              console.log('[APP] Active field set to:', (window as any)._duiActiveField);
-            }
-            el.dispatchEvent(new MouseEvent('mousedown', { clientX: data.x, clientY: data.y, bubbles: true }));
-          } else {
-            el.dispatchEvent(new MouseEvent('mouseup', { clientX: data.x, clientY: data.y, bubbles: true }));
-            el.dispatchEvent(new MouseEvent('click', { clientX: data.x, clientY: data.y, bubbles: true }));
-            if (el.tagName === 'INPUT') {
-              el.focus();
-              el.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
-            }
+        if (data.pressed) {
+          if (el.tagName === 'INPUT') {
+            (window as any)._duiActiveField = (el as HTMLInputElement).type === 'password' ? 'password' : 'username';
+          }
+          el.dispatchEvent(new MouseEvent('mousedown', { clientX: data.x, clientY: data.y, bubbles: true }));
+        } else {
+          el.dispatchEvent(new MouseEvent('mouseup', { clientX: data.x, clientY: data.y, bubbles: true }));
+          el.dispatchEvent(new MouseEvent('click', { clientX: data.x, clientY: data.y, bubbles: true }));
+          if (el.tagName === 'INPUT') {
+            el.focus();
+            el.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
           }
         }
       }
 
       if (data?.type === 'key') {
-        const field = (window as any)._duiActiveField;
-        console.log('[APP KEY] key:', data.key, '| field:', field);
         window.dispatchEvent(new CustomEvent('dui:key', {
-          detail: { key: data.key, field }
+          detail: { key: data.key, field: (window as any)._duiActiveField }
         }));
       }
 
@@ -93,10 +82,7 @@ const App: React.FC = () => {
     <div className={`nui-wrapper ${isDui ? 'dui-mode' : ''}`}>
       <LaptopScreen correctLoginDetails={correctLoginDetails} />
       {isDui && (
-        <div
-          className="dui-cursor"
-          style={{ left: cursorPos.x, top: cursorPos.y }}
-        />
+        <div className="dui-cursor" style={{ left: cursorPos.x, top: cursorPos.y }} />
       )}
     </div>
   );

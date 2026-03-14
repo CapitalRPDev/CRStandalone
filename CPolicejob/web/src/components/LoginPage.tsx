@@ -17,11 +17,8 @@ const LoginPage: React.FC<Props> = ({ onLogin }) => {
     useEffect(() => { passwordRef.current = password; }, [password]);
 
     useEffect(() => {
-        console.log('[LOGINPAGE] Mounted');
-
         const handler = (e: Event) => {
             const { key, field } = (e as CustomEvent).detail;
-            console.log('[KEY] dui:key event — key:', key, 'field:', field);
             if (!field) return;
 
             if (key === 'Backspace') {
@@ -40,29 +37,18 @@ const LoginPage: React.FC<Props> = ({ onLogin }) => {
         };
 
         window.addEventListener('dui:key', handler);
-        return () => {
-            console.log('[LOGINPAGE] Unmounted');
-            window.removeEventListener('dui:key', handler);
-        };
+        return () => window.removeEventListener('dui:key', handler);
     }, []);
 
     return (
         <div className="login-page">
             <div className="input-row">
                 <label>Username</label>
-                <input
-                    type="text"
-                    value={username}
-                    onChange={() => {}}
-                />
+                <input type="text" value={username} onChange={() => {}} />
             </div>
             <div className="input-row">
                 <label>Password</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={() => {}}
-                />
+                <input type="password" value={password} onChange={() => {}} />
             </div>
             {error && <p className="login-error">{error}</p>}
         </div>
