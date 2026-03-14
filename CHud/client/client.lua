@@ -350,11 +350,13 @@ end)
 
 RegisterCommand("togglehud", function(source, args, rawCommand)
 
-    if not hidden then 
+    if not hidden then
+        CNotification("HUD Hidden", "fa-solid fa-info", "#00aeff", 4000)
         hidden = true
         DisplayRadar(false)
         toggleNuiFrame(false)
-    else 
+    else
+        CNotification("HUD Enabled", "fa-solid fa-info", "#00aeff", 4000)
         hidden = false
         toggleNuiFrame(true)
         DisplayRadar(true)
