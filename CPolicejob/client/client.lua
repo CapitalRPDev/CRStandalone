@@ -61,28 +61,42 @@ end
         )
     end
 for i, stash in pairs(Config.Police.evidenceStash) do
-    exports['CInteraction']:createZone(
-        stash.coords,
-        vector3(2.0, 2.0, 5.0),
-        {
-            id = ('police_evidence_stash_%s'):format(i),
-            hideOnSelect = true,
-            prompts = {
-                {
-                    label = stash.label,
-                    sublabel = "Open stash",
-                    icon = "fa-solid fa-magnifying-glass",
-                    action = function()
-                        exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
-                    end,
-                    canInteract = function()
-                        local playerData = QBCore.Functions.GetPlayerData()
-                        return playerData.job.name == 'police' and playerData.job.grade.level >= stash.grade
-                    end
-                },
-            }
+exports['CInteraction']:createZone(
+    stash.coords,
+    vector3(2.0, 2.0, 5.0),
+    {
+        id = ('police_evidence_stash_%s'):format(i),
+        hideOnSelect = true,
+        prompts = {
+            {
+                label = stash.label,
+                sublabel = "Open stash",
+                icon = "fa-solid fa-magnifying-glass",
+                action = function()
+                    local input = lib.inputDialog('Evidence Stash', {
+                        { type = 'input', label = 'Evidence Code', placeholder = 'EV-XXXXXXXX', required = true }
+                    })
+
+                    if not input or not input[1] then return end
+
+                    local code = input[1]:upper():gsub('%s+', '')
+
+                    lib.callback('CPolicejob:validateEvidenceCode', false, function(valid)
+                        if valid then
+                            exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
+                        else
+                            lib.notify({ title = 'Evidence', description = 'Invalid evidence code', type = 'error' })
+                        end
+                    end, code)
+                end,
+                canInteract = function()
+                    local playerData = QBCore.Functions.GetPlayerData()
+                    return playerData.job.name == 'police' and playerData.job.grade.level >= stash.grade
+                end
+            },
         }
-    )
+    }
+)
 end
 end
 
@@ -753,9 +767,22 @@ RegisterKeyMapping('tackle', 'Tackle Player (SHIFT + )', 'keyboard', 'G')
 
 
 
+RegisterNUICallback('CPolicejob:Client:ToggleDuty', function(data, cb)
+    cb({ success = true })
+    print("Received toggle duty")
+    TriggerServerEvent("CPolice:Server:ToggleDuty")
+
+end)
 
 
 
+RegisterNetEvent('CPolicejob:Client:BossActionResult', function(result)
+    if result.success then
+        lib.callback('CPolicejob:getAllOfficers', false, function(officers)
+            DUI_Send({ type = 'setAllOfficers', data = officers or {} })
+        end)
+    end
+end)
 
 
 

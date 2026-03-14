@@ -161,10 +161,10 @@ local function StartInteractionLoop()
                 local duiX, duiY = ScreenToDui(_cursorX, _cursorY)
                 DUI_MouseButton(0, true, duiX, duiY)
             end
-            if IsDisabledControlJustReleased(0, 24) then
-                local duiX, duiY = ScreenToDui(_cursorX, _cursorY)
-                DUI_MouseButton(0, false, duiX, duiY)
-            end
+if IsDisabledControlJustReleased(0, 24) then
+    local duiX, duiY = ScreenToDui(_cursorX, _cursorY)
+    DUI_MouseButton(0, false, duiX, duiY)
+end
 
             if IsDisabledControlJustPressed(0, 25) then
                 local duiX, duiY = ScreenToDui(_cursorX, _cursorY)
@@ -198,6 +198,9 @@ RegisterNUICallback('duiEscape', function(_, cb)
     CloseTestDui()
 end)
 
+
+
+
 function OpenTestDui()
     if _testOpen then CloseTestDui() return end
     if not DUI_IsReady() then
@@ -230,11 +233,29 @@ function OpenTestDui()
     DUI_Send({ type = 'open', ui = {} })
 
     Wait(300)
-    DUI_Send({ type = 'setCorrectLoginDetails', data = { username = '2043T', password = 'admin' } })
+
+    lib.callback('CPolicejob:getPlayerGrade', false, function(grade)
+    DUI_Send({ type = 'setPlayerData', data = { job = 'police', grade = grade } })
+    end)
+
+
+    lib.callback('CPolicejob:getActiveOfficers', false, function(officers)
+        DUI_Send({ type = 'setActiveOfficers', data = officers or {} })
+    end)
+
+    lib.callback('CPolicejob:getAllOfficers', false, function(officers)
+        print('[TESTDUI] getAllOfficers: ' .. json.encode(officers))
+        DUI_Send({ type = 'setAllOfficers', data = officers or {} })
+    end)
+lib.callback('CPolicejob:getLoginDetails', false, function(details)
+    print('[TESTDUI] Login details: ' .. json.encode(details))
+    if details then
+        DUI_Send({ type = 'setCorrectLoginDetails', data = details })
+    end
+end)
 
     StartInteractionLoop()
 end
-
 function CloseTestDui()
     if not _testOpen then return end
     _testOpen = false
@@ -250,8 +271,54 @@ function CloseTestDui()
     _testLaptop = nil
 end
 
+
+RegisterNUICallback('duiAction', function(data, cb)
+    cb('ok')
+    local action = tostring(data.action or '')
+
+    if action == 'toggleDuty' then
+        print('[TESTDUI] Toggle duty received')
+        TriggerServerEvent("CPolice:Server:ToggleDuty")
+
+    elseif action == 'hireOfficer' then
+        print('[SERVER] hireOfficer data: ' .. json.encode(data))
+        TriggerServerEvent('CPolicejob:Server:HireOfficer', {
+            cid      = data.citizenid,
+            name     = data.name,
+            callsign = data.callsign,
+            division = data.division,
+            grade    = data.grade,
+            password = data.password,
+        })
+    elseif action == 'fireOfficer' then
+        TriggerServerEvent('CPolicejob:Server:FireOfficer', {
+            id = data.id
+        })
+
+    elseif action == 'editOfficer' then
+        TriggerServerEvent('CPolicejob:Server:EditOfficer', {
+            id       = data.id,
+            callsign = data.callsign,
+            division = data.division,
+            grade    = data.grade,
+            password = data.password,
+        })
+    elseif action == 'logEvidence' then
+        TriggerServerEvent('CPolicejob:Server:LogEvidence', {
+            cadReference = data.cadReference,
+            callsign     = data.callsign,
+            material     = data.material,
+            packId       = data.packId,
+            comment      = data.comment,
+            code         = data.code,
+        })
+    end
+end)
+
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     CloseTestDui()
     DUI_Destroy()
 end)
+
+

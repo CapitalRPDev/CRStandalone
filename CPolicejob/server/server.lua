@@ -1,7 +1,7 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local cuffedPlayers = {}
 local draggingPlayers = {}
-
+local officersOnDuty = {}
 local webhook = "https://discord.com/api/webhooks/1481972728876761222/fEzgz-3G24pP_7ufjJW5CUwgCPC8Wgep7lQ-BihjgqrpdLDZ6uk7DVBvrY7727WPAe-w"
 
 function LogToDiscord(color, title, description)
@@ -19,23 +19,34 @@ function LogToDiscord(color, title, description)
 end
 
 local function getPlayerName(src)
-    return GetPlayerName(src) or "Unknown"
+    local player = QBCore.Functions.GetPlayer(src)
+    if not player then return "Unknown" end
+    local name = player.PlayerData.charinfo.firstname .. " " .. player.PlayerData.charinfo.lastname
+    return name
 end
 
 RegisterNetEvent("CPolice:Server:ToggleDuty", function()
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    if Player.PlayerData.job.onduty then 
+    if not Player then return end
+
+    if Player.PlayerData.job.onduty then
         Player.Functions.SetJobDuty(false)
+        officersOnDuty[src] = nil
         TriggerClientEvent('QBCore:Notify', src, "You are now off duty", "info")
+        TriggerClientEvent('CPolicejob:Client:SetDutyState', src, false)
         LogToDiscord(15158332, "🔴 Officer Off Duty", "**Officer:** " .. getPlayerName(src) .. " `[" .. src .. "]`")
-    else 
+    else
         Player.Functions.SetJobDuty(true)
+        officersOnDuty[src] = {
+            name   = getPlayerName(src),
+            source = src,
+        }
         TriggerClientEvent('QBCore:Notify', src, "You are now on duty. Welcome!", "info")
+        TriggerClientEvent('CPolicejob:Client:SetDutyState', src, true)
         LogToDiscord(3066993, "🟢 Officer On Duty", "**Officer:** " .. getPlayerName(src) .. " `[" .. src .. "]`")
     end
 end)
-
 RegisterNetEvent("CPoliceJob:Server:RequestCuff", function(targetServerId, frontCuffed)
     local src = source
     targetServerId = tonumber(targetServerId)
@@ -216,6 +227,166 @@ exports.ox_inventory:registerHook('swapItems', function(payload)
         end
     end
 end)
+
+
+lib.callback.register('CPolicejob:getPlayerGrade', function(source)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return 0 end
+    return Player.PlayerData.job.grade.level
+end)
+
+lib.callback.register('CPolicejob:getLoginDetails', function(source)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return nil end
+    local citizenid = Player.PlayerData.citizenid
+    print('[SERVER] getLoginDetails: querying for citizenid: ' .. tostring(citizenid))
+    local result = exports.oxmysql:query_async('SELECT name, password FROM police_officers WHERE citizenid = ?', { citizenid })
+    print('[SERVER] getLoginDetails: result: ' .. json.encode(result))
+    if result and result[1] then
+        return { username = result[1].name, password = result[1].password }
+    end
+    return nil
+end)
+
+lib.callback.register('CPolicejob:getActiveOfficers', function(source)
+    local result = {}
+    for src, _ in pairs(officersOnDuty) do
+        local Player = QBCore.Functions.GetPlayer(src)
+        if Player then
+            local citizenid = Player.PlayerData.citizenid
+            local officer = exports.oxmysql:query_async('SELECT name, callsign, division, grade FROM police_officers WHERE citizenid = ?', { citizenid })
+            if officer and officer[1] then
+                table.insert(result, officer[1])
+            end
+        end
+    end
+    return result
+end)
+lib.callback.register('CPolicejob:getAllOfficers', function(source)
+    local result = exports.oxmysql:query_async('SELECT * FROM police_officers')
+    return result or {}
+end)
+
+
+RegisterNetEvent('CPolicejob:Server:HireOfficer', function(data)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    print('[SERVER] hireOfficer data: ' .. json.encode(data))
+
+    local existing = exports.oxmysql:query_async('SELECT id FROM police_officers WHERE citizenid = ?', { data.cid })
+    if existing and existing[1] then
+        print('[SERVER] Officer already exists with citizenid: ' .. tostring(data.cid))
+        TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = false, message = 'Officer already exists' })
+        return
+    end
+
+    exports.oxmysql:execute_async(
+        'INSERT INTO police_officers (citizenid, name, callsign, division, grade, password, on_duty, hired_by) VALUES (?, ?, ?, ?, ?, ?, 0, ?)',
+        { data.cid, data.name, data.callsign, data.division, data.grade, data.password, Player.PlayerData.citizenid },
+        function(rowsChanged)
+            if rowsChanged > 0 then
+                print('[SERVER] Officer hired: ' .. data.name)
+                local NewOfficer = QBCore.Functions.GetPlayerByCitizenId(data.cid)
+                if NewOfficer then
+                    NewOfficer.Functions.SetJob('police', 1)
+                end
+                TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = true, action = 'hire' })
+            end
+        end
+    )
+end)
+
+RegisterNetEvent('CPolicejob:Server:FireOfficer', function(data)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    exports.oxmysql:execute_async(
+        'DELETE FROM police_officers WHERE id = ?',
+        { data.id },
+        function(rowsChanged)
+            if rowsChanged > 0 then
+                print('[SERVER] Officer fired: id ' .. tostring(data.id))
+                TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = true, action = 'fire' })
+            end
+        end
+    )
+end)
+
+RegisterNetEvent('CPolicejob:Server:EditOfficer', function(data)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    if data.password and data.password ~= '' then
+        exports.oxmysql:execute_async(
+            'UPDATE police_officers SET callsign = ?, division = ?, grade = ?, password = ? WHERE id = ?',
+            { data.callsign, data.division, data.grade, data.password, data.id },
+            function(rowsChanged)
+                if rowsChanged > 0 then
+                    TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = true, action = 'edit' })
+                end
+            end
+        )
+    else
+        exports.oxmysql:execute_async(
+            'UPDATE police_officers SET callsign = ?, division = ?, grade = ? WHERE id = ?',
+            { data.callsign, data.division, data.grade, data.id },
+            function(rowsChanged)
+                if rowsChanged > 0 then
+                    TriggerClientEvent('CPolicejob:Client:BossActionResult', src, { success = true, action = 'edit' })
+                end
+            end
+        )
+    end
+end)
+
+
+
+RegisterNetEvent('CPolicejob:Server:LogEvidence', function(data)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    print('[SERVER] Evidence logged: ' .. json.encode(data))
+
+    exports.oxmysql:execute_async(
+        'INSERT INTO police_evidence (code, cad_reference, callsign, material, pack_id, comment, logged_by, logged_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+        { data.code, data.cadReference, data.callsign, data.material, data.packId, data.comment, Player.PlayerData.citizenid }
+    )
+
+    LogToDiscord(3066993, "🔬 Evidence Logged", 
+        "**Officer:** " .. GetPlayerName(src) .. "\n" ..
+        "**CAD Ref:** " .. tostring(data.cadReference) .. "\n" ..
+        "**Material:** " .. tostring(data.material) .. "\n" ..
+        "**Pack ID:** " .. tostring(data.packId) .. "\n" ..
+        "**Code:** `" .. tostring(data.code) .. "`"
+    )
+end)
+
+
+lib.callback.register('CPolicejob:validateEvidenceCode', function(source, code)
+    local result = exports.oxmysql:query_async('SELECT id FROM police_evidence WHERE code = ?', { code })
+    if result and result[1] then
+        return true
+    end
+    return false
+end)
+
+
+AddEventHandler('playerDropped', function()
+    local src = source
+    if officersOnDuty[src] then
+        officersOnDuty[src] = nil
+        local Player = QBCore.Functions.GetPlayer(src)
+        if Player then
+            Player.Functions.SetJobDuty(false)
+        end
+    end
+end)
+
 
 AddEventHandler('onResourceStart', function(resourceName)
     if resourceName ~= GetCurrentResourceName() then return end

@@ -13,7 +13,7 @@ Config.Police = {
     evidenceStash = {
         [1] = {
             label = "Main Evidence",
-            grade = 3,
+            grade = 0,
             coords = vector3(478.9845, -985.0586, 24.9159)
         },
         [2] = {
