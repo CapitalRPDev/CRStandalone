@@ -127,11 +127,19 @@ const EvidencePage: React.FC = () => {
                                 <input name="material" type="text" value={form.material}
                                     onChange={isDui ? () => {} : e => setForm(p => ({ ...p, material: e.target.value }))} />
                             </div>
-                            <div className="modal-field">
-                                <label>Evidence Pack ID</label>
+                        <div className="modal-field">
+                            <label>Evidence Pack ID</label>
+                            <div className="input-with-btn">
                                 <input name="packId" type="text" value={form.packId}
                                     onChange={isDui ? () => {} : e => setForm(p => ({ ...p, packId: e.target.value }))} />
+                                <button className="input-side-btn" onClick={async () => {
+                                    const text = await navigator.clipboard.readText();
+                                    if (text) setForm(p => ({ ...p, packId: text.trim() }));
+                                }}>
+                                    <i className="fa-solid fa-clipboard"></i>
+                                </button>
                             </div>
+                        </div>
                         </div>
                         <div className="modal-field">
                             <label>Comment</label>
