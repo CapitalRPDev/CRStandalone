@@ -14,11 +14,13 @@ Config.Police = {
         [1] = {
             label = "Main Evidence",
             grade = 0,
+            requireLogging = true,
             coords = vector3(478.9845, -985.0586, 24.9159)
         },
         [2] = {
             label = "CID Evidence",
             grade = 2,
+            requireLogging = false,
             coords = vector3(481.6060, -989.4913, 24.9159)
         },
     }

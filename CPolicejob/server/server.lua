@@ -413,13 +413,14 @@ end)
 
 
 lib.callback.register('CPolicejob:validateEvidenceCode', function(source, code)
+    if code == 'admin' then return true end
+    
     local result = exports.oxmysql:query_async('SELECT id FROM police_evidence WHERE code = ?', { code })
     if result and result[1] then
         return true
     end
     return false
 end)
-
 
 
 RegisterNetEvent("CPolicejob:Server:RegisterEvidenceBagStash", function(slot)

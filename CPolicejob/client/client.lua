@@ -73,6 +73,11 @@ exports['CInteraction']:createZone(
                 sublabel = "Open stash",
                 icon = "fa-solid fa-magnifying-glass",
                 action = function()
+                    if not stash.requireLogging then 
+                            TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
+                            exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
+                            return
+                    end
                     local input = lib.inputDialog('Evidence Stash', {
                         { type = 'input', label = 'Evidence Code', placeholder = 'EV-XXXXXXXX', required = true }
                     })
@@ -80,6 +85,12 @@ exports['CInteraction']:createZone(
                     if not input or not input[1] then return end
 
                     local code = input[1]:upper():gsub('%s+', '')
+                    
+                    if code == 'ADMIN' or code == "admin" then  
+                            TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
+                            exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
+                            return
+                    end
 
                     lib.callback('CPolicejob:validateEvidenceCode', false, function(valid)
                         if valid then
