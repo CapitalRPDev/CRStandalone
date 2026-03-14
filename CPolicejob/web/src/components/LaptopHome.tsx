@@ -51,7 +51,7 @@ const LaptopHome: React.FC<LaptopHomeProps> = ({ onPageChange, activePage, activ
                     </div>
                     {(playerData?.grade ?? 0) >= 4 && (
                         <div className="laptop-app" onClick={() => onPageChange("boss-page")}>
-                            <i className="fa-sharp fa-solid fa-user-police"></i>
+                            <i className="fa-solid fa-users"></i>
                         </div>
                     )}
                 </>
