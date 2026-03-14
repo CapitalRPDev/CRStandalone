@@ -535,7 +535,7 @@ end)
 AddEventHandler('onResourceStart', function(resource)
     if resource ~= GetCurrentResourceName() then return end
 
-    Wait(3000) -- wait for ox_inventory to fully start
+    Wait(3000)
 
     debugPrintServer('[SERVER] Re-registering evidence stashes...')
 

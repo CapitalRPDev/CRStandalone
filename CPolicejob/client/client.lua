@@ -929,6 +929,32 @@ RegisterNetEvent("CPolicejob:Client:OpenEvidenceStash", function(stashId)
 end)
 
 
+RegisterCommand("pdactions", function()
+    SetNuiFocus(true, false)
+    SendReactMessage("setVisible", true)
+    SendReactMessage("setPoliceMenuVisible", true)
+end, false)
+
+RegisterNUICallback("policeMenuAction", function(data, cb)
+    cb("ok")
+    local action = data.action
+    if action == "search" then
+        debugPrint("Searching")
+    elseif action == "seizeVehicle" then
+        debugPrint("Seizing")
+    elseif action == "openMDT" then
+        debugPrint("Opening MDT")
+    end
+end)
+
+RegisterNUICallback("closePoliceMenu", function(_, cb)
+    cb("ok")
+    SetNuiFocus(false, false)
+    SendReactMessage("setPoliceMenuVisible", false)
+end)
+
+
+
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName ~= GetCurrentResourceName() then return end
     for i, _ in pairs(Config.Police.toggleDuty) do
@@ -937,7 +963,7 @@ AddEventHandler('onResourceStop', function(resourceName)
 end)
 
 
-function debugdebugPrint(msg)
+function debugPrint(msg)
     if Config.Debug then 
         print("^3[Police] ^2" .. msg)
     end

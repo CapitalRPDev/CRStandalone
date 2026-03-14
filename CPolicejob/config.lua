@@ -120,7 +120,7 @@ Config.CuffSettings = {
 Config.LaptopProp      = 'prop_laptop_lester2'
 Config.LaptopTexDict   = 'prop_laptop_lester2'
 Config.LaptopScreenTextures = {
-    'script_rt_tvscreen',       -- Correct texture name for prop_laptop_lester2
+    'script_rt_tvscreen',      
 }
 Config.LaptopCoords = {
     vector4(439.7604, -981.3269, 30.5678, 90.0000),

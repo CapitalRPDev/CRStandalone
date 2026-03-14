@@ -161,10 +161,10 @@ local function StartInteractionLoop()
                 local duiX, duiY = ScreenToDui(_cursorX, _cursorY)
                 DUI_MouseButton(0, true, duiX, duiY)
             end
-if IsDisabledControlJustReleased(0, 24) then
-    local duiX, duiY = ScreenToDui(_cursorX, _cursorY)
-    DUI_MouseButton(0, false, duiX, duiY)
-end
+            if IsDisabledControlJustReleased(0, 24) then
+                local duiX, duiY = ScreenToDui(_cursorX, _cursorY)
+                DUI_MouseButton(0, false, duiX, duiY)
+            end
 
             if IsDisabledControlJustPressed(0, 25) then
                 local duiX, duiY = ScreenToDui(_cursorX, _cursorY)

@@ -3,6 +3,7 @@ import "./App.css";
 import { useNuiEvent } from "../hooks/useNuiEvent";
 import { debugData } from "../utils/debugData";
 import LaptopScreen from "./LaptopScreen";
+import PoliceMenu from "./PoliceMenu";
 import { LoginDetails, PlayerData, Officer } from "./types";
 import { useDuiKeyRelay } from "../hooks/useDuiKeyRelay";
 
@@ -51,12 +52,14 @@ const App: React.FC = () => {
   const [activeOfficers, setActiveOfficers] = useState<Officer[]>([]);
   const [allOfficers, setAllOfficers] = useState<Officer[]>([]);
   const [onDuty, setOnDuty] = useState<boolean>(false);
+  const [policeMenuVisible, setPoliceMenuVisible] = useState<boolean>(false);
 
   useNuiEvent<Officer[]>("setActiveOfficers", setActiveOfficers);
   useNuiEvent<Officer[]>("setAllOfficers", setAllOfficers);
   useNuiEvent<LoginDetails>("setCorrectLoginDetails", setCorrectLoginDetails);
   useNuiEvent<PlayerData>("setPlayerData", setPlayerData);
   useNuiEvent<boolean>("setOnDuty", setOnDuty);
+  useNuiEvent<boolean>("setPoliceMenuVisible", setPoliceMenuVisible);
 
   const handleToggleDuty = () => {
     setOnDuty(p => !p);
@@ -98,17 +101,17 @@ const App: React.FC = () => {
         }
       }
 
-if (data?.type === 'key') {
-    const key = data.key as string;
-    if (key.startsWith('PASTE:')) {
-        const pastedText = key.replace('PASTE:', '');
-        window.dispatchEvent(new CustomEvent('dui:paste', { detail: { value: pastedText } }));
-    } else {
-        window.dispatchEvent(new CustomEvent('dui:key', {
-            detail: { key, field: (window as any)._duiActiveField }
-        }));
-    }
-}
+      if (data?.type === 'key') {
+        const key = data.key as string;
+        if (key.startsWith('PASTE:')) {
+            const pastedText = key.replace('PASTE:', '');
+            window.dispatchEvent(new CustomEvent('dui:paste', { detail: { value: pastedText } }));
+        } else {
+            window.dispatchEvent(new CustomEvent('dui:key', {
+                detail: { key, field: (window as any)._duiActiveField }
+            }));
+        }
+      }
 
       if (data?.type === 'scroll') {
         let el = document.elementFromPoint(data.x, data.y) as HTMLElement | null;
@@ -127,18 +130,29 @@ if (data?.type === 'key') {
     return () => window.removeEventListener('message', handler);
   }, []);
 
-  return (
-    <div className={`nui-wrapper ${isDui ? 'dui-mode' : ''}`}>
-      <LaptopScreen
-        correctLoginDetails={correctLoginDetails}
-        activeOfficers={activeOfficers}
-        allOfficers={allOfficers}
-        playerData={playerData}
-        onDuty={onDuty}
-        onToggleDuty={handleToggleDuty}
-      />
-      {isDui && (
+  if (isDui) {
+    return (
+      <div className="nui-wrapper dui-mode">
+        <LaptopScreen
+          correctLoginDetails={correctLoginDetails}
+          activeOfficers={activeOfficers}
+          allOfficers={allOfficers}
+          playerData={playerData}
+          onDuty={onDuty}
+          onToggleDuty={handleToggleDuty}
+        />
         <div className="dui-cursor" style={{ left: cursorPos.x, top: cursorPos.y }} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="nui-wrapper">
+      {policeMenuVisible && (
+        <PoliceMenu
+          playerData={playerData}
+          onClose={() => setPoliceMenuVisible(false)}
+        />
       )}
     </div>
   );

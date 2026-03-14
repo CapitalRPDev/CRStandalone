@@ -13,7 +13,7 @@ html, body, #root {
   justify-content: center;
   align-items: center;
   background-color: transparent;
-  background-color: #032072;
+
 }
 
 .nui-wrapper.dui-mode {
@@ -620,4 +620,112 @@ html, body, #root {
 
 .input-side-btn:hover {
     opacity: 0.8;
+}
+
+
+.police-menu-wrapper {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: all;
+    animation: confirmEntrance 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.police-menu-selected {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+}
+
+.police-menu-key {
+    width: 28px;
+    height: 28px;
+    background: #00aeff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(0, 167, 220, 0.6);
+    flex-shrink: 0;
+}
+
+.police-menu-selected-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.police-menu-container {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.police-menu-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background-color: #181818;
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+    min-height: 38px;
+    color: rgba(255, 255, 255, 0.55);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.police-menu-action i {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.35);
+    flex-shrink: 0;
+}
+
+.police-menu-action.active {
+    color: #fff;
+    border-left: 3px solid #00aeff;
+    background-color: rgba(0, 167, 220, 0.12);
+    box-shadow: 0 0 20px rgba(0, 167, 220, 0.15);
+}
+
+.police-menu-action.active i {
+    color: #00aeff;
+}
+
+.police-menu-action-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.police-menu-action-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: inherit;
+    white-space: nowrap;
+}
+
+.police-menu-action-sublabel {
+    font-size: 0.78rem;
+    opacity: 0.9;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    line-height: 1;
+    margin-top: 2px;
 }
