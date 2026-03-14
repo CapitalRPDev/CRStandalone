@@ -23,6 +23,19 @@ Config.Police = {
             requireLogging = false,
             coords = vector3(481.6060, -989.4913, 24.9159)
         },
+    },
+    armoury = {
+        [1] = {
+            label = "PPE - Armoury",
+            grade = 0,
+            coords = vector3(454.1919, -980.1483, 30.6902),
+            items = {
+                {label = "ASP", item = "weapon_baton", amount = 1, price = 0},
+                {label = "PAVA", item = "weapon_pava", amount = 1, price = 0},
+                {label = "Evidence Bag", item = "evidence_pack", amount = 3, price = 0},
+                {label = "Evidence Pack", item = "evidence_pack", amount = 3, price = 0}
+            }
+        }
     }
 }
 

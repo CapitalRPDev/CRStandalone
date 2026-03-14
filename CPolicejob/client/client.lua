@@ -60,95 +60,123 @@ end
             }
         )
     end
-for i, stash in pairs(Config.Police.evidenceStash) do
-exports['CInteraction']:createZone(
-    stash.coords,
-    vector3(2.0, 2.0, 5.0),
-    {
-        id = ('police_evidence_stash_%s'):format(i),
-        hideOnSelect = true,
-        prompts = {
-            {
-                label = stash.label,
-                sublabel = "Open stash",
-                icon = "fa-solid fa-magnifying-glass",
-                action = function()
-                    if not stash.requireLogging then 
-                            TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
-                            exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
-                            return
-                    end
-                    local input = lib.inputDialog('Evidence Stash', {
-                        { type = 'input', label = 'Evidence Code', placeholder = 'EV-XXXXXXXX', required = true }
-                    })
-
-                    if not input or not input[1] then return end
-
-                    local code = input[1]:upper():gsub('%s+', '')
-                    
-                    if code == 'ADMIN' or code == "admin" then  
-                            TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
-                            exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
-                            return
-                    end
-
-                    lib.callback('CPolicejob:validateEvidenceCode', false, function(valid)
-                        if valid then
-                            TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
-                            exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
-                        else
-                            lib.notify({ title = 'Evidence', description = 'Invalid evidence code', type = 'error' })
+    for i, stash in pairs(Config.Police.evidenceStash) do
+    exports['CInteraction']:createZone(
+        stash.coords,
+        vector3(2.0, 2.0, 5.0),
+        {
+            id = ('police_evidence_stash_%s'):format(i),
+            hideOnSelect = true,
+            prompts = {
+                {
+                    label = stash.label,
+                    sublabel = "Open stash",
+                    icon = "fa-solid fa-magnifying-glass",
+                    action = function()
+                        if not stash.requireLogging then 
+                                TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
+                                exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
+                                return
                         end
-                    end, code)
-                end,
-                canInteract = function()
-                    local playerData = QBCore.Functions.GetPlayerData()
-                    return playerData.job.name == 'police' and playerData.job.grade.level >= stash.grade
-                end
-            },
-            {
-                label = "Evidence Pack",
-                sublabel = "Check Pack ID",
-                icon = "fa-solid fa-box",
-                action = function()
-                    local items = exports.ox_inventory:GetPlayerItems()
-                    local pack = nil
+                        local input = lib.inputDialog('Evidence Stash', {
+                            { type = 'input', label = 'Evidence Code', placeholder = 'EV-XXXXXXXX', required = true }
+                        })
 
-                    for _, v in pairs(items) do
-                        if v.name == 'evidence_pack' then
-                            pack = v
-                            break
+                        if not input or not input[1] then return end
+
+                        local code = input[1]:upper():gsub('%s+', '')
+                        
+                        if code == 'ADMIN' or code == "admin" then  
+                                TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
+                                exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
+                                return
                         end
+
+                        lib.callback('CPolicejob:validateEvidenceCode', false, function(valid)
+                            if valid then
+                                TriggerServerEvent('CPolicejob:Server:SetActiveEvidenceCode', code, 'evidence_stash_' .. i)
+                                exports.ox_inventory:openInventory('stash', 'evidence_stash_' .. i)
+                            else
+                                lib.notify({ title = 'Evidence', description = 'Invalid evidence code', type = 'error' })
+                            end
+                        end, code)
+                    end,
+                    canInteract = function()
+                        local playerData = QBCore.Functions.GetPlayerData()
+                        return playerData.job.name == 'police' and playerData.job.grade.level >= stash.grade
                     end
+                },
+                {
+                    label = "Evidence Pack",
+                    sublabel = "Check Pack ID",
+                    icon = "fa-solid fa-box",
+                    action = function()
+                        local items = exports.ox_inventory:GetPlayerItems()
+                        local pack = nil
 
-                    if not pack then
-                        lib.notify({ title = 'Evidence', description = 'You do not have an evidence pack', type = 'error' })
-                        return
+                        for _, v in pairs(items) do
+                            if v.name == 'evidence_pack' then
+                                pack = v
+                                break
+                            end
+                        end
+
+                        if not pack then
+                            lib.notify({ title = 'Evidence', description = 'You do not have an evidence pack', type = 'error' })
+                            return
+                        end
+
+                        local packId = pack.metadata and pack.metadata.pack_id
+
+                        if not packId then
+                            lib.notify({ title = 'Evidence', description = 'This pack has no ID assigned', type = 'error' })
+                            return
+                        end
+
+                        exports.ox_inventory:openInventory('stash', packId)
+                        exports['CHud']:CNotification(
+                            'Pack ID: ' .. packId,
+                            "fa-duotone fa-solid fa-box",
+                            "#1B4F72",
+                            20000
+                        )
+                    end,
+                    canInteract = function()
+                        local playerData = QBCore.Functions.GetPlayerData()
+                        return playerData.job.name == 'police' and playerData.job.grade.level >= stash.grade
                     end
-
-                    local packId = pack.metadata and pack.metadata.pack_id
-
-                    if not packId then
-                        lib.notify({ title = 'Evidence', description = 'This pack has no ID assigned', type = 'error' })
-                        return
-                    end
-
-                    exports.ox_inventory:openInventory('stash', packId)
-                    exports['CHud']:CNotification(
-                        'Pack ID: ' .. packId,
-                        "fa-duotone fa-solid fa-box",
-                        "#1B4F72",
-                        20000
-                    )
-                end,
-                canInteract = function()
-                    local playerData = QBCore.Functions.GetPlayerData()
-                    return playerData.job.name == 'police' and playerData.job.grade.level >= stash.grade
-                end
-            },
+                },
+            }
         }
-    }
-)
+    )
+    end
+for i, armoury in pairs(Config.Police.armoury) do
+    local prompts = {}
+
+    for _, item in pairs(armoury.items) do
+        prompts[#prompts + 1] = {
+            label = armoury.label,
+            sublabel = item.label .. " - " .. (item.price == 0 and "Free" or "£" .. item.price),
+            icon = "fa-solid fa-box",
+            action = function()
+                TriggerServerEvent("CPolicejob:Server:GiveEquipment", item.item, item.amount, item.price, item.label)
+            end,
+            canInteract = function()
+                local playerData = QBCore.Functions.GetPlayerData()
+                return playerData.job.name == 'police' and playerData.job.grade.level >= armoury.grade
+            end
+        }
+    end
+
+    exports['CInteraction']:createZone(
+        armoury.coords,
+        vector3(2.0, 2.0, 5.0),
+        {
+            id = ('police_armoury_%s'):format(i),
+            hideOnSelect = true,
+            prompts = prompts
+        }
+    )
 end
 end
 
@@ -650,7 +678,7 @@ RegisterKeyMapping("putinvehicle", "Put Player In Vehicle", "keyboard", "RIGHT")
 
 RegisterKeyMapping("outofvehicle", "Take Player Out Of Vehicle", "keyboard", "RIGHT")
 function Notify(text, duration)
-    exports['CHud']:CNotification(text, "fa-duotone fa-solid fa-user-police", "#1B4F72", duration or 3000)
+    exports['CHud']:CNotification(text, "fa-solid fa-info", "#1B4F72", duration or 3000)
 end
 
 

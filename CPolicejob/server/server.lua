@@ -492,6 +492,30 @@ lib.callback.register('CPolicejob:Server:RegisterPackToStash', function(source, 
     return packId
 end)
 
+
+
+RegisterNetEvent("CPolicejob:Server:GiveEquipment", function(item, amount, price, label)
+    local src = source
+    local player = QBCore.Functions.GetPlayer(src)
+    if player then 
+        if officersOnDuty[src] then
+            player.Functions.AddItem(item, amount)
+            TriggerClientEvent("CPoliceJob:Client:Notify", src, label .. " taken out of armoury", 2000)
+            LogToDiscord(3447003, "🔫 Armoury Access",
+                "**Officer:** " .. getPlayerName(src) .. " `[" .. src .. "]`\n" ..
+                "**Item:** " .. label .. "\n" ..
+                "**Amount:** " .. tostring(amount)
+            )
+        else
+            TriggerClientEvent("CPoliceJob:Client:Notify", src, "You need to clock on to do this", 4000)
+        end
+    end
+end)
+
+
+
+
+
 AddEventHandler('playerDropped', function()
     local src = source
     activeEvidenceSessions[src] = nil
@@ -503,6 +527,9 @@ AddEventHandler('playerDropped', function()
         end
     end
 end)
+
+
+
 
 
 AddEventHandler('onResourceStart', function(resource)
@@ -546,6 +573,9 @@ AddEventHandler('onResourceStart', function(resource)
         end
     end
 end)
+
+
+
 
 
 
