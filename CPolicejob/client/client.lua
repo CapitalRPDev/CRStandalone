@@ -97,7 +97,7 @@ exports['CInteraction']:createZone(
             },
             {
                 label = "Evidence Pack",
-                sublabel = "Register & open evidence pack stash",
+                sublabel = "Check Pack ID",
                 icon = "fa-solid fa-box",
                 action = function()
                     local items = exports.ox_inventory:GetPlayerItems()
