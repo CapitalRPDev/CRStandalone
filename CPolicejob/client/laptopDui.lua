@@ -253,7 +253,9 @@ lib.callback('CPolicejob:getLoginDetails', false, function(details)
         DUI_Send({ type = 'setCorrectLoginDetails', data = details })
     end
 end)
-
+    for _, texName in ipairs(Config.LaptopScreenTextures) do
+        AddReplaceTexture(Config.LaptopTexDict, texName, _txdName, 'screen')
+    end
     StartInteractionLoop()
 end
 function CloseTestDui()
@@ -262,6 +264,9 @@ function CloseTestDui()
 
     SetNuiFocus(false, false)
     DUI_Send({ type = 'close' })
+    for _, texName in ipairs(Config.LaptopScreenTextures) do
+    RemoveReplaceTexture(Config.LaptopTexDict, texName)
+end
     ReleaseTestCam()
 
     if _testLaptop and DoesEntityExist(_testLaptop) then
@@ -320,5 +325,7 @@ AddEventHandler('onResourceStop', function(res)
     CloseTestDui()
     DUI_Destroy()
 end)
+
+
 
 

@@ -471,6 +471,11 @@ RegisterNetEvent("CPolicejob:Server:RegisterEvidencePackStash", function(slot)
 end)
 
 
+lib.callback.register('CPolicejob:openEvidenceBagStash', function(source, stashId)
+    exports.ox_inventory:RegisterStash(stashId, 'Evidence Bag - ' .. stashId, 10, 100000)
+    return true
+end)
+
 lib.callback.register('CPolicejob:Server:RegisterPackToStash', function(source, slot, stashId)
     local src = source
 
@@ -503,9 +508,44 @@ AddEventHandler('playerDropped', function()
 end)
 
 
-AddEventHandler('onResourceStart', function(resourceName)
-    if resourceName ~= GetCurrentResourceName() then return end
-    for i, stash in pairs(Config.Police.evidenceStash) do
-        exports.ox_inventory:RegisterStash('evidence_stash_' .. i, stash.label, 50, 100000)
+AddEventHandler('onResourceStart', function(resource)
+    if resource ~= GetCurrentResourceName() then return end
+
+    Wait(3000) -- wait for ox_inventory to fully start
+
+    print('[SERVER] Re-registering evidence stashes...')
+
+    local rows = exports.oxmysql:query_async("SELECT data FROM ox_inventory WHERE data LIKE '%stash_id%'")
+    print('[SERVER] Found rows: ' .. tostring(rows and #rows or 0))
+    if rows then
+        for _, v in pairs(rows) do
+            local data = json.decode(v.data)
+            if data then
+                for _, item in pairs(data) do
+                    if item and item.name == 'evidence_bag' and item.metadata and item.metadata.stash_id then
+                        print('[SERVER] Re-registering: ' .. item.metadata.stash_id)
+                        exports.ox_inventory:RegisterStash(item.metadata.stash_id, 'Evidence Bag - ' .. item.metadata.stash_id, 10, 100000)
+                        print('[SERVER] Re-registered evidence bag stash: ' .. item.metadata.stash_id)
+                    end
+                end
+            end
+        end
+    end
+
+    local packs = exports.oxmysql:query_async("SELECT data FROM ox_inventory WHERE data LIKE '%pack_id%'")
+    if packs then
+        for _, v in pairs(packs) do
+            local data = json.decode(v.data)
+            if data then
+                for _, item in pairs(data) do
+                    if item and item.name == 'evidence_pack' and item.metadata and item.metadata.pack_id then
+                        exports.ox_inventory:RegisterStash(item.metadata.pack_id, 'Evidence Pack - ' .. item.metadata.pack_id, 50, 100000, {
+                            { name = 'evidence_bag', count = 50 }
+                        })
+                        print('[SERVER] Re-registered evidence pack stash: ' .. item.metadata.pack_id)
+                    end
+                end
+            end
+        end
     end
 end)

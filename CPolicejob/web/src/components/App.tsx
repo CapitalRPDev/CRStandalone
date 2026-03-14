@@ -98,11 +98,17 @@ const App: React.FC = () => {
         }
       }
 
-      if (data?.type === 'key') {
+if (data?.type === 'key') {
+    const key = data.key as string;
+    if (key.startsWith('PASTE:')) {
+        const pastedText = key.replace('PASTE:', '');
+        window.dispatchEvent(new CustomEvent('dui:paste', { detail: { value: pastedText } }));
+    } else {
         window.dispatchEvent(new CustomEvent('dui:key', {
-          detail: { key: data.key, field: (window as any)._duiActiveField }
+            detail: { key, field: (window as any)._duiActiveField }
         }));
-      }
+    }
+}
 
       if (data?.type === 'scroll') {
         let el = document.elementFromPoint(data.x, data.y) as HTMLElement | null;

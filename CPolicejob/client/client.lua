@@ -123,12 +123,11 @@ exports['CInteraction']:createZone(
                     end
 
                     exports.ox_inventory:openInventory('stash', packId)
-                    lib.setClipboard(packId)
                     exports['CHud']:CNotification(
-                        'Pack ID  copied',
+                        'Pack ID: ' .. packId,
                         "fa-duotone fa-solid fa-box",
                         "#1B4F72",
-                        3000
+                        20000
                     )
                 end,
                 canInteract = function()
@@ -141,6 +140,46 @@ exports['CInteraction']:createZone(
 )
 end
 end
+
+
+RegisterCommand('testprop', function()
+    local hash = GetHashKey('ba_prop_club_laptop_dj')
+    RequestModel(hash)
+    while not HasModelLoaded(hash) do Wait(10) end
+    local coords = GetEntityCoords(PlayerPedId())
+    local prop = CreateObject(hash, coords.x, coords.y + 1.0, coords.z, false, true, false)
+    FreezeEntityPosition(prop, true)
+    print('[TEST] Prop spawned: ' .. tostring(prop))
+end, false)
+
+RegisterCommand('gettextures', function()
+    local dict = 'ba_prop_club_laptop_dj'
+    RequestStreamedTextureDict(dict)
+    while not HasStreamedTextureDictLoaded(dict) do Wait(10) end
+    print('[TEST] Texture dict loaded')
+    
+    local textures = {
+        'script_rt_laptop_dj',
+        'laptop_screen',
+        'screen',
+        'ba_laptop_screen',
+        'club_laptop_screen',
+        'script_rt_tvscreen',
+        'dj_laptop_screen',
+    }
+    for _, tex in pairs(textures) do
+        local ok, err = pcall(function()
+            AddReplaceTexture(dict, tex, _txdName, 'screen')
+        end)
+        if ok then
+            print('[TEST] ✓ Texture worked: ' .. tex)
+            Wait(3000)
+            RemoveReplaceTexture(dict, tex)
+        else
+            print('[TEST] ✗ Texture failed: ' .. tex)
+        end
+    end
+end, false)
 
 RegisterNetEvent("CPolice:Client:UseCuffItem", function()
     local model = GetHashKey(Config.Props.cuffs)
@@ -839,15 +878,17 @@ RegisterNetEvent("CPolice:Client:UseEvidenceBag", function(data)
         end
     end
 
-    print('[CLIENT] item found: ' .. json.encode(item))
-
     local metadata = item and item.metadata
 
     if metadata and metadata.stash_id then
-        print('[CLIENT] Opening existing stash: ' .. metadata.stash_id)
-        exports.ox_inventory:openInventory('stash', metadata.stash_id)
+        lib.callback('CPolicejob:openEvidenceBagStash', false, function(success)
+            if success then
+                exports.ox_inventory:openInventory('stash', metadata.stash_id)
+            else
+                lib.notify({ title = 'Evidence', description = 'Stash unavailable', type = 'error' })
+            end
+        end, metadata.stash_id)
     else
-        print('[CLIENT] No stash ID, creating new stash')
         TriggerServerEvent("CPolicejob:Server:RegisterEvidenceBagStash", slot)
     end
 end)

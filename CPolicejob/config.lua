@@ -109,7 +109,8 @@ Config.LaptopScreenTextures = {
 }
 Config.LaptopCoords = {
     vector4(439.7604, -981.3269, 30.5678, 90.0000),
-    vector4(451.6620, -976.1751, 30.5803, 95.0000)
+    vector4(451.6620, -976.1751, 30.5803, 95.0000),
+    vector4(473.5229, -983.7916, 24.8164, -180.0000)
 }
 Config.LaptopHeading   = 89.4
 

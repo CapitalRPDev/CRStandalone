@@ -10,7 +10,12 @@ interface EvidenceForm {
     comment: string;
 }
 
-const EvidencePage: React.FC = () => {
+interface EvidencePageProps {
+    onPageChange : (page : string) => void,
+}
+
+
+const EvidencePage: React.FC<EvidencePageProps> = ({onPageChange}) => {
     const [form, setForm] = useState<EvidenceForm>({
         cadReference: '',
         callsign: '',
@@ -37,6 +42,18 @@ const EvidencePage: React.FC = () => {
 
         window.addEventListener('dui:key', handler);
         return () => window.removeEventListener('dui:key', handler);
+    }, []);
+
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const { value } = (e as CustomEvent).detail;
+            const field = (window as any)._duiActiveField;
+            if (field) {
+                setForm(p => ({ ...p, [field]: value }));
+            }
+        };
+        window.addEventListener('dui:paste', handler);
+        return () => window.removeEventListener('dui:paste', handler);
     }, []);
 
     useEffect(() => {
@@ -86,8 +103,8 @@ const EvidencePage: React.FC = () => {
             <div className="app-page-header">
                 <span className="app-page-header-title">Evidence Log</span>
                 <div className="app-page-header-actions">
-                    <i className="fa-solid fa-minus"></i>
-                    <i className="fa-solid fa-x"></i>
+                    <i className="fa-solid fa-minus" onClick={() => onPageChange("home")}></i>
+                    <i className="fa-solid fa-x" onClick={() => onPageChange("home")}></i>
                 </div>
             </div>
             <div className="app-page-content">
@@ -129,16 +146,8 @@ const EvidencePage: React.FC = () => {
                             </div>
                         <div className="modal-field">
                             <label>Evidence Pack ID</label>
-                            <div className="input-with-btn">
-                                <input name="packId" type="text" value={form.packId}
-                                    onChange={isDui ? () => {} : e => setForm(p => ({ ...p, packId: e.target.value }))} />
-                                <button className="input-side-btn" onClick={async () => {
-                                    const text = await navigator.clipboard.readText();
-                                    if (text) setForm(p => ({ ...p, packId: text.trim() }));
-                                }}>
-                                    <i className="fa-solid fa-clipboard"></i>
-                                </button>
-                            </div>
+                            <input name="packId" type="text" value={form.packId}
+                                onChange={isDui ? () => {} : e => setForm(p => ({ ...p, packId: e.target.value }))} />
                         </div>
                         </div>
                         <div className="modal-field">

@@ -35,7 +35,7 @@ const LaptopHome: React.FC<LaptopHomeProps> = ({ onPageChange, activePage, activ
     const renderPage = () => {
         switch (activePage) {
             case 'duty-page':     return <DutyPage activeOfficers={activeOfficers} onDuty={onDuty} onToggleDuty={onToggleDuty} onPageChange={onPageChange} />;
-            case 'evidence-page': return <EvidencePage />;
+            case 'evidence-page': return <EvidencePage onPageChange={onPageChange} />;
             case 'pnc-page':      return <PncPage />;
             case 'boss-page':     return <BossPage onPageChange={onPageChange} allOfficers={allOfficers} playerGrade={playerData?.grade ?? 0} />;
             default: return (
