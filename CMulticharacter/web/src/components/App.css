@@ -73,10 +73,10 @@ pre {
 }
 
 .character-box {
-    background-color: #181818;
-    width: 30%;
+    background-color: rgba(24, 24, 24, 0.9); /* 0.7 = 70% opacity, adjust to taste */
+    width: 20%;
     margin: 20px;
-    border-left: 3px solid #00aeff;
+    border-left: 4px solid #00aeff;
     border-radius: 6px;
     padding: 20px 24px;
     font-size: 16px;
@@ -98,8 +98,8 @@ pre {
 }
 
 .character-avatar {
-    width: 44px;
-    height: 44px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: rgba(0, 167, 220, 0.15);
     border: 1px solid rgba(0, 167, 220, 0.4);
@@ -117,10 +117,11 @@ pre {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    align-items: flex-start;
 }
 
 .character-name-block h3 {
-    font-size: 15px;
+    font-size: 25px;
     font-weight: bold;
     color: #fff;
     margin: 0;
@@ -155,14 +156,14 @@ pre {
 
 .detail-label {
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.35);
+    color: #fff;
     letter-spacing: 2px;
     font-weight: normal;
 }
 
 .detail-value {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.75);
+    color: #fff;
     font-weight: normal;
     letter-spacing: 0.5px;
     text-transform: none;
@@ -268,21 +269,29 @@ pre {
 }
 
 .character-box--empty {
-    border-left: 3px solid rgba(255, 255, 255, 0.1);
-    opacity: 0.5;
+    background-color: rgba(24, 24, 24, 0.8); 
+    border: 1px dashed rgba(255, 255, 255, 0.2); 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
+    font-size: 25px;
+    color: #fff;
 }
-
 .character-box--empty span {
-    font-size: 28px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 28px; 
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 167, 220, 0.15);
+    border: 1px solid rgba(0, 167, 220, 0.4);
+    line-height: 1; 
 }
 
 .character-box--empty:hover {

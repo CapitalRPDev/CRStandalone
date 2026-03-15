@@ -11,11 +11,11 @@ Config.DefaultNumberOfCharacters = 1 -- Define maximum amount of default charact
 
 Config.Locations = {
     [1] = {
-        PedCoords = vector4(969.25, 72.61, 116.18, 276.55),
-        HiddenCoords = vector4(973.55, 77.18, 116.18, 225.01),
-        CamCoords = vector4(972.2, 72.9, 116.68, 97.27),
-    },
-    [2] = {
+        PedCoords = vector4(172.9965, -1045.9532, 72.7116, 159.7820),
+        HiddenCoords = vector4(172.9965, -1045.9532, 72.7116, 159.7820),
+        CamCoords = vector4(171.0708, -1049.8013, 73.3956, 339.1521),
+    }
+--[[     [2] = {
         PedCoords = vector4(1104.49, 195.9, -49.44, 44.22),
         HiddenCoords = vector4(1096.63, 200.98, -49.44, 238.62),
         CamCoords = vector4(1102.29, 198.14, -48.86, 225.07),
@@ -39,5 +39,5 @@ Config.Locations = {
         PedCoords = vector4(2265.27, 2925.02, -84.8, 267.77),
         HiddenCoords = vector4(2271.14, 2925.0, -84.8, 119.79),
         CamCoords = vector4(2268.24, 2925.02, -84.36, 90.88),
-    }
+    } ]]
 }
